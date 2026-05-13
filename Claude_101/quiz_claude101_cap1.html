@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Claude 101 — Capítulo 1: Meet Claude</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --near-black: #111111;
+    --dark: #1a1a1a;
+    --mid: #2a2a2a;
+    --border: #333;
+    --text: #e8e6e1;
+    --muted: #888;
+    --orange: #d4783a;
+    --orange-light: #e8934f;
+    --orange-glow: rgba(212,120,58,0.15);
+    --blue: #3a7bd4;
+    --blue-light: #5a9be8;
+    --green: #2d7a4f;
+    --green-light: #3da066;
+    --green-bg: rgba(45,122,79,0.12);
+    --red: #8b2424;
+    --red-light: #c43030;
+    --red-bg: rgba(139,36,36,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1008 40%, #0f0f0f 70%, #0a0a0a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0 14px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .asterisk {
+    width: 32px;
+    height: 32px;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span {
+    color: var(--orange);
+  }
+
+  .header-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .chapter-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .score-pill {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+
+  .score-pill.active {
+    color: var(--blue-light);
+    border-color: rgba(58,123,212,0.4);
+    background: rgba(58,123,212,0.1);
+  }
+
+  /* PROGRESS BAR */
+  .progress-container {
+    background: var(--near-black);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 71px;
+    z-index: 99;
+  }
+
+  .progress-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue-light));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+    box-shadow: 0 0 8px rgba(90,155,232,0.5);
+  }
+
+  .progress-text {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* MAIN */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 48px 0 56px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(ellipse, rgba(212,120,58,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 500px;
+    margin: 0 auto 32px;
+    font-weight: 300;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    text-align: center;
+  }
+
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--orange);
+  }
+
+  .hero-stat-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 48px 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .section-info h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .section-info p {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .question-card.answered-correct {
+    border-color: var(--green);
+    background: linear-gradient(135deg, var(--near-black), rgba(45,122,79,0.05));
+  }
+
+  .question-card.answered-wrong {
+    border-color: var(--red);
+    background: linear-gradient(135deg, var(--near-black), rgba(139,36,36,0.05));
+  }
+
+  .question-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .question-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .question-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .question-section-tag {
+    font-size: 0.65rem;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.2);
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .question-text {
+    font-size: 0.97rem;
+    color: var(--text);
+    margin-bottom: 20px;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  /* OPTIONS */
+  .options-grid {
+    display: grid;
+    gap: 8px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: rgba(212,120,58,0.4);
+    background: rgba(212,120,58,0.05);
+  }
+
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  .option-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .option-text {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.45;
+    padding-top: 2px;
+    font-weight: 300;
+  }
+
+  /* CORRECT */
+  .option-btn.correct {
+    border-color: var(--green-light);
+    background: var(--green-bg);
+  }
+
+  .option-btn.correct .option-badge {
+    background: var(--green);
+    border-color: var(--green-light);
+    color: #fff;
+  }
+
+  /* WRONG */
+  .option-btn.wrong {
+    border-color: var(--red-light);
+    background: var(--red-bg);
+  }
+
+  .option-btn.wrong .option-badge {
+    background: var(--red);
+    border-color: var(--red-light);
+    color: #fff;
+  }
+
+  /* SHOW CORRECT when user chose wrong */
+  .option-btn.show-correct {
+    border-color: var(--green);
+    background: rgba(45,122,79,0.06);
+    opacity: 0.7;
+  }
+
+  .option-btn.show-correct .option-badge {
+    background: var(--green);
+    border-color: var(--green-light);
+    color: #fff;
+  }
+
+  /* FEEDBACK */
+  .feedback-box {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 300;
+    display: none;
+    animation: fadeSlide 0.25s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback-box.correct-fb {
+    display: block;
+    background: var(--green-bg);
+    border: 1px solid var(--green);
+    color: #7dd4a0;
+  }
+
+  .feedback-box.wrong-fb {
+    display: block;
+    background: var(--red-bg);
+    border: 1px solid var(--red-light);
+    color: #e08080;
+  }
+
+  .feedback-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .feedback-box.correct-fb .feedback-label { color: var(--green-light); }
+  .feedback-box.wrong-fb .feedback-label { color: var(--red-light); }
+
+  /* RESULTS */
+  .results-panel {
+    display: none;
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-top: 48px;
+    text-align: center;
+    animation: fadeSlide 0.4s ease;
+  }
+
+  .results-panel.visible { display: block; }
+
+  .results-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+  }
+
+  .results-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .results-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 16px 0;
+    color: var(--orange);
+  }
+
+  .results-sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .section-breakdown {
+    display: grid;
+    gap: 12px;
+    margin: 24px 0;
+    text-align: left;
+  }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .breakdown-label {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  .breakdown-stat {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .breakdown-bar-wrap {
+    width: 80px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .breakdown-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--blue-light));
+  }
+
+  .breakdown-bar-fill.good { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+  .breakdown-bar-fill.bad { background: linear-gradient(90deg, var(--red), var(--red-light)); }
+
+  .retry-btn {
+    margin-top: 24px;
+    padding: 14px 32px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .retry-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+  .retry-btn:active { transform: translateY(0); }
+
+  /* SCREENSHOT IMAGES */
+  .screenshot-note {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .screenshot-note::before {
+    content: '🖥';
+    font-size: 1rem;
+  }
+
+  /* DIVIDER */
+  .quiz-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  /* STICKY NAV */
+  .sticky-nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .sticky-nav.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sticky-nav-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .sticky-nav-text strong {
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+
+  .see-results-btn {
+    padding: 10px 20px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .see-results-btn:hover { background: var(--orange-light); }
+
+  @media (max-width: 600px) {
+    .main { padding: 24px 16px 100px; }
+    .question-card { padding: 20px; }
+    .header-inner { gap: 8px; }
+    .hero-stats { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class='header'>
+  <div class='header-inner'>
+    <div class='logo'>
+      <svg class='asterisk' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <line x1='50' y1='5' x2='50' y2='95' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='27.5' x2='95' y2='72.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='72.5' x2='95' y2='27.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+      </svg>
+      <span class='logo-text'>Claude <span>101</span></span>
+    </div>
+    <div class='header-meta'>
+      <span class='chapter-badge'>Cap. 1</span>
+      <span class='score-pill' id='scoreDisplay'>0 / 0</span>
+    </div>
+  </div>
+</header>
+
+<!-- PROGRESS -->
+<div class='progress-container'>
+  <div class='progress-inner'>
+    <div class='progress-bar-wrap'>
+      <div class='progress-bar-fill' id='progressBar'></div>
+    </div>
+    <span class='progress-text' id='progressText'>0 / 50</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class='main'>
+
+  <!-- HERO -->
+  <div class='hero'>
+    <div class='hero-eyebrow'>Anthropic Academy · Claude 101</div>
+    <h1 class='hero-title'>Meet Claude</h1>
+    <p class='hero-subtitle'>Pon a prueba lo que aprendiste sobre Claude, sus capacidades, modos de acceso y mejores prácticas de prompting.</p>
+    <div class='hero-stats'>
+      <div class='hero-stat'>
+        <div class='hero-stat-num'>50</div>
+        <div class='hero-stat-label'>Preguntas</div>
+      </div>
+      <div class='hero-stat'>
+        <div class='hero-stat-num'>5</div>
+        <div class='hero-stat-label'>Secciones</div>
+      </div>
+      <div class='hero-stat'>
+        <div class='hero-stat-num'>~15</div>
+        <div class='hero-stat-label'>Minutos</div>
+      </div>
+    </div>
+  </div>
+
+  <div id='quizContainer'></div>
+  <div class='results-panel' id='resultsPanel'></div>
+
+</main>
+
+<!-- STICKY NAV -->
+<div class='sticky-nav' id='stickyNav'>
+  <span class='sticky-nav-text'>Respondidas: <strong id='navAnswered'>0</strong> de <strong>50</strong></span>
+  <button class='see-results-btn' onclick='showResults()'>Ver resultados →</button>
+</div>
+
+<script>
+'use strict';
+
+var questions = [
+
+  // ==================== SECCIÓN 1: ¿Qué es Claude? ====================
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Cómo describe Anthropic a Claude en términos generales?',
+    options: ['Un motor de búsqueda avanzado', 'Un asistente de IA diseñado para ser tu socio de pensamiento', 'Un chatbot simple de preguntas y respuestas', 'Un compilador de código automático'],
+    correct: 1,
+    feedback: 'Claude es descrito como más que un chatbot: es un asistente de IA diseñado para ser tu "thinking partner" o socio de pensamiento, capaz de ayudarte a abordar problemas complejos.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Cuál es el enfoque de diseño de alto nivel que guía a Claude según el material del curso?',
+    options: ['Machine Learning Supervisado', 'Constitutional AI (IA Constitucional)', 'Reinforcement Learning from Human Feedback únicamente', 'Algoritmos de reglas predefinidas'],
+    correct: 1,
+    feedback: 'Claude está guiado por Constitutional AI, un enfoque que entrena a Claude para alinearse con valores humanos y operar de forma transparente, evitando salidas tóxicas o discriminatorias.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Cuáles son los tres principios fundamentales que guían el comportamiento de Claude?',
+    options: ['Rápido, preciso y económico', 'Helpful, harmless, and honest (útil, inofensivo y honesto)', 'Creativo, lógico y eficiente', 'Seguro, privado y encriptado'],
+    correct: 1,
+    feedback: 'Los tres principios son: ser helpful (útil), harmless (inofensivo) y honest (honesto). Estos guían a Claude para evitar outputs dañinos y comportarse como un sistema de IA beneficioso.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Cuál de las siguientes afirmaciones sobre la capacidad de dirección (steerability) de Claude es correcta?',
+    options: ['Claude no puede cambiar su tono ni personalidad', 'Claude puede recibir instrucciones sobre personalidad, tono y comportamiento', 'Claude solo puede ser dirigido por desarrolladores con acceso a la API', 'La dirección de Claude requiere comandos especiales de sistema'],
+    correct: 1,
+    feedback: 'Claude está diseñado para ser steerable (dirigible): puede tomar dirección sobre personalidad, tono y comportamiento, lo que hace más fácil obtener el output deseado con menos esfuerzo.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Qué significa que Claude sea "colaborativo" según el material del curso?',
+    options: ['Que Claude trabaja en equipo con otros modelos de IA', 'Que Claude puede ayudarte a abordar problemas complejos como un socio de pensamiento', 'Que Claude comparte datos con otros usuarios', 'Que Claude aprende de las conversaciones de todos los usuarios'],
+    correct: 1,
+    feedback: 'La naturaleza colaborativa de Claude significa que funciona como un socio de pensamiento que puede ayudarte a trabajar a través de situaciones desafiantes y problemas complejos, no solo responder preguntas simples.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿En qué tipos de planes está disponible Claude?',
+    options: ['Solo en planes de pago Pro y Enterprise', 'Free, Pro, Max, Team y Enterprise', 'Solo mediante la API para desarrolladores', 'Únicamente en planes Team y Enterprise'],
+    correct: 1,
+    feedback: 'Las apps de Claude están disponibles para todos los tipos de plan: Free, Pro, Max, Team y Enterprise. Las conversaciones, proyectos, memoria y preferencias se sincronizan en todos los dispositivos.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Cuál es el tamaño de ventana de contexto estándar de Claude mencionado en el curso?',
+    options: ['50K tokens (aproximadamente 100 páginas)', '200K+ tokens (aproximadamente 500 páginas o más)', '1 millón de tokens para todos los planes', '10K tokens para conversaciones normales'],
+    correct: 1,
+    feedback: 'Claude tiene una ventana de contexto grande que puede ingerir 200K+ tokens (alrededor de 500 páginas de texto o más), con hasta 1M tokens disponibles en planes Pro, Max, Team y Enterprise con Opus 4.7.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Qué es el "Learning mode" (modo aprendizaje) mencionado en el material?',
+    options: ['Un modo donde Claude aprende de tus conversaciones permanentemente', 'Una experiencia que guía tu proceso de razonamiento en lugar de darte respuestas directas', 'Un modo de entrenamiento solo para administradores', 'Un modo que activa búsqueda web automáticamente'],
+    correct: 1,
+    feedback: 'El Learning mode es una nueva experiencia de Claude que guía tu proceso de razonamiento en lugar de proporcionar respuestas directas, ayudando a desarrollar habilidades de pensamiento crítico.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Qué modelo de Claude se describe como "el mejor modelo de codificación del mundo" en el curso?',
+    options: ['Claude Sonnet 4.7', 'Claude Haiku 4.5', 'Claude Opus 4.7', 'Claude Code'],
+    correct: 2,
+    feedback: 'Claude Opus 4.7 es descrito como el modelo más potente y el mejor modelo de codificación del mundo, con fuerte rendimiento en tareas de codificación del mundo real.'
+  },
+  {
+    section: '¿Qué es Claude?',
+    sectionIdx: 1,
+    text: '¿Qué característica especial tienen Claude Opus 4.7 y Sonnet 4.7 según el material?',
+    options: ['Son los únicos modelos con acceso a internet', 'Son modelos híbridos con dos modos: respuestas casi instantáneas y pensamiento extendido', 'Solo funcionan en el modo Code de la app de escritorio', 'Son exclusivos para usuarios Enterprise'],
+    correct: 1,
+    feedback: 'Claude Opus 4.7 y Sonnet 4.7 son modelos híbridos que ofrecen dos modos: respuestas casi instantáneas para tareas cotidianas y extended thinking (pensamiento extendido) para razonamiento más profundo.'
+  },
+
+  // ==================== SECCIÓN 2: Primeras Conversaciones y Prompting ====================
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Cuál es el mejor enfoque para hablar con Claude según el material del curso?',
+    options: ['Usar comandos técnicos específicos y formales', 'Hablar como lo harías con un colega: natural, conciso y conversacional', 'Escribir prompts lo más largos y detallados posible siempre', 'Usar solo inglés para mejores resultados'],
+    correct: 1,
+    feedback: 'El mejor enfoque para hablar con Claude es como lo harías con un compañero de trabajo: de forma natural, concisa y conversacional. No necesitas usar comandos técnicos especiales.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Cuál es el primer elemento del marco de tres partes para escribir buenos prompts?',
+    options: ['Definir la tarea (qué acción quieres que tome Claude)', 'Establecer el escenario (tu rol, objetivos y contexto relevante)', 'Especificar las reglas (estilo, tono y ejemplos)', 'Adjuntar archivos de referencia'],
+    correct: 1,
+    feedback: 'El primer elemento es "Setting the stage" (establecer el escenario): informar a Claude sobre tu rol, tus objetivos y cualquier contexto sobre tu trabajo que debería conocer.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: 'En el marco de prompting de tres partes, ¿qué significa "Defining the task"?',
+    options: ['Describir quién eres y tu empresa', 'Indicar el estilo y tono que deseas', 'Especificar qué acción quieres que Claude tome (escribir, analizar, construir, etc.)', 'Listar los archivos que vas a adjuntar'],
+    correct: 2,
+    feedback: '"Defining the task" significa indicar claramente qué acción quieres que Claude realice: ¿quieres que escriba, analice, construya algo? Es el núcleo de lo que necesitas.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Qué incluye el tercer elemento "Specifying rules" en el marco de prompting?',
+    options: ['Las reglas legales y de privacidad aplicables', 'El estilo, tono y ejemplos que quieres que Claude use', 'Los datos de acceso a sistemas externos', 'Las limitaciones de tiempo para la respuesta'],
+    correct: 1,
+    feedback: '"Specifying rules" incluye indicar el estilo o tono que deseas, y si puedes adjuntar ejemplos para mostrarle a Claude exactamente qué formato o estilo necesitas.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: 'En el ejemplo del pitch deck del material del curso, ¿cuál parte del prompt establece el escenario?',
+    options: ['Pedir que use investigación web con citas', 'Indicar que es para un pitch de inversores de una app de streaming independiente', 'Solicitar un informe estructurado de hasta 5 páginas', 'Pedir análisis de competidores'],
+    correct: 1,
+    feedback: 'El escenario se establece al decir que el prompt es para un pitch deck de inversores para una nueva app de streaming indie: ese es el contexto y el objetivo que orienta toda la respuesta de Claude.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Qué es el "4D Framework for AI Fluency" mencionado en el curso?',
+    options: ['Un framework de 4 dimensiones para diseñar interfaces de IA', 'Un marco de 4 competencias: Delegation, Description, Discernment y Diligence', 'Un protocolo de seguridad de datos en 4 pasos', 'Un método de evaluación con 4 criterios técnicos'],
+    correct: 1,
+    feedback: 'El 4D Framework identifica cuatro competencias centrales: Delegation (delegar), Description (describir), Discernment (discernir) y Diligence (diligencia), que permiten una colaboración efectiva con IA.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Qué tipo de archivos puede aceptar Claude en cargas de archivos según el material?',
+    options: ['Solo archivos de texto plano (.txt)', 'PDF, DOCX, CSV, TXT y formatos de imagen comunes como PNG y JPEG', 'Solo archivos de código fuente', 'Únicamente hojas de cálculo Excel'],
+    correct: 1,
+    feedback: 'Claude puede analizar tanto elementos de texto como visuales en PDFs y otros documentos. Los tipos de archivo admitidos incluyen PDF, DOCX, CSV, TXT y formatos de imagen comunes como PNG y JPEG.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Para qué sirve la función "Memory" (Memoria) en Claude?',
+    options: ['Para guardar archivos en la nube de Anthropic', 'Para guardar automáticamente contexto clave como tu rol, preferencias y estilo de trabajo', 'Para recordar conversaciones de otros usuarios con perfiles similares', 'Para sincronizar documentos con Google Drive'],
+    correct: 1,
+    feedback: 'Memory guarda automáticamente contexto clave de tus conversaciones —tu rol, preferencias, decisiones pasadas y estilo de trabajo— para que no tengas que repetirte en cada nueva sesión.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Qué son los "Styles" (Estilos) en Claude?',
+    options: ['Temas visuales para cambiar la interfaz de Claude', 'Configuraciones para personalizar cómo Claude se comunica (conciso, formal, explicativo, etc.)', 'Plantillas de prompts predefinidas', 'Perfiles de usuario diferentes'],
+    correct: 1,
+    feedback: 'Styles te permiten personalizar cómo se comunica Claude: puedes elegir entre opciones predefinidas (conciso, formal, explicativo) o crear tu propio estilo personalizado describiendo exactamente cómo quieres que escriba.'
+  },
+  {
+    section: 'Prompting Efectivo',
+    sectionIdx: 2,
+    text: '¿Qué ocurre cuando adjuntas un documento a una conversación con Claude?',
+    options: ['Claude lo guarda permanentemente en su base de datos', 'Claude lo comparte automáticamente con otros usuarios', 'Claude considera ese contenido en su respuesta para ese chat', 'Claude solo puede leer las primeras páginas del documento'],
+    correct: 2,
+    feedback: 'Cuando cargas documentos o información de contexto en un chat específico, Claude considera ese contenido en su respuesta. Es como un atajo para que Claude entienda tus necesidades.'
+  },
+
+  // ==================== SECCIÓN 3: Iteración y Mejora de Respuestas ====================
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Cuál es el "mindset" (mentalidad) recomendado al trabajar con Claude según el material?',
+    options: ['Esperar que el primer prompt siempre dé el resultado perfecto', 'Reconocer que el primer prompt es el inicio de una conversación, no una solicitud de un solo intento', 'Reformular el prompt desde cero si la primera respuesta no es perfecta', 'Usar siempre el modelo más potente para garantizar buenos resultados'],
+    correct: 1,
+    feedback: 'El material recomienda adoptar un "iteration mindset": el primer prompt raramente produce un resultado perfecto, y eso está bien. Es el inicio de una conversación, no una solicitud de un solo disparo.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Cuál de estas acciones se recomienda si la respuesta de Claude es demasiado genérica?',
+    options: ['Cambiar al modelo Opus inmediatamente', 'Añadir detalles sobre tu audiencia, rol o restricciones específicas', 'Reiniciar completamente la conversación', 'Desactivar el modo de pensamiento extendido'],
+    correct: 1,
+    feedback: 'Si la respuesta es demasiado genérica, el problema es que el prompt no incluyó suficiente contexto. Añadir detalles sobre tu audiencia, rol o restricciones ayuda a Claude a dar respuestas más específicas y útiles.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Cómo deberías indicarle a Claude la longitud de respuesta que necesitas?',
+    options: ['Depende del modelo elegido y no se puede controlar', 'Siendo explícito: "Dame un resumen de dos párrafos" o "Mantén esto en menos de 100 palabras"', 'La longitud se ajusta automáticamente según el tipo de pregunta', 'Solo se puede controlar en el panel de configuración avanzada'],
+    correct: 1,
+    feedback: 'Si Claude adivina la longitud apropiada, puedes ser explícito: "Dame un resumen de dos párrafos" o "Mantén esto bajo 100 palabras" o "Necesito un análisis comprensivo".'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Qué recomienda el material hacer si Claude produce información que suena convincente pero podría ser incorrecta?',
+    options: ['Siempre aceptar la respuesta ya que Claude no comete errores', 'Verificar hechos clave de forma independiente, pedir citas o habilitar búsqueda web', 'Cambiar inmediatamente a un modelo diferente', 'Reportar el error a Anthropic y esperar una corrección'],
+    correct: 1,
+    feedback: 'Claude ocasionalmente genera información plausible pero incorrecta. Para trabajo de alto impacto, debes verificar hechos clave de forma independiente, pedir a Claude que cite fuentes o habilitar la búsqueda web.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Qué técnica específica menciona el material para refinar un prompt ya enviado?',
+    options: ['Borrar la conversación y empezar de nuevo siempre', 'Hacer clic en el ícono de lápiz en cualquiera de tus mensajes para editarlos y reenviarlos', 'Enviar el mismo prompt varias veces hasta obtener el resultado deseado', 'Cambiar el modelo y volver a enviar el mismo prompt'],
+    correct: 1,
+    feedback: 'El material menciona que puedes hacer clic en el ícono de lápiz (pencil icon) en cualquiera de tus mensajes para editar y reenviar tu prompt, útil cuando quieres refinar tu solicitud en lugar de añadir un nuevo mensaje.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Cuándo recomienda el material iniciar una nueva conversación?',
+    options: ['Al inicio de cada sesión de trabajo', 'Si la conversación se ha desviado mucho y es más rápido empezar con un prompt más claro', 'Cada vez que cambias de tema dentro de una sesión', 'Cada 10 mensajes para optimizar el rendimiento'],
+    correct: 1,
+    feedback: 'Si una conversación se ha desviado demasiado, a veces es más rápido abrir un nuevo chat con un prompt más claro que intentar redirigir. Esto "refresca" completamente el contexto.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Qué tipo de feedback es más efectivo según el material?',
+    options: ['"Hazlo mejor" — simple y directo', '"Hazlo más corto" — especificidad básica', '"Elimina los dos primeros párrafos y haz la conclusión más orientada a la acción" — feedback específico', '"No me gustó" — feedback emocional'],
+    correct: 2,
+    feedback: 'El material indica que dar feedback específico como "Elimina los dos primeros párrafos y haz la conclusión más orientada a la acción" es mejor que simplemente "hazlo más corto". La especificidad mejora los resultados.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: 'Según el material, ¿qué beneficio tiene la comunicación continua y frecuente con Claude?',
+    options: ['Reduce el costo por mensaje en planes de pago', 'Claude se vuelve mejor en comprender tu estilo de comunicación y preferencias', 'Claude guarda todas las conversaciones permanentemente', 'Activa funciones avanzadas bloqueadas inicialmente'],
+    correct: 1,
+    feedback: 'El poder real de Claude viene con la comunicación continua y frecuente. Cuanto más interactúas con Claude, mejor se vuelve en comprender tu estilo de comunicación y preferencias para futuras conversaciones.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Dónde se pueden configurar las preferencias personales que Claude considera en cada respuesta?',
+    options: ['En el menú de herramientas dentro de cada conversación', 'En Settings > General > "What personal preferences should Claude consider?"', 'Solo mediante prompts al inicio de cada sesión', 'En el perfil de usuario de Anthropic.com'],
+    correct: 1,
+    feedback: 'Para que Claude considere preferencias específicas en cada respuesta, ve a Settings > General > "What personal preferences should Claude consider?" para establecer preferencias que aplican a todas las conversaciones.'
+  },
+  {
+    section: 'Iteración y Mejora',
+    sectionIdx: 3,
+    text: '¿Cuál es el enfoque "delegation-diligence loop" para evaluar Claude en análisis de datos?',
+    options: ['Delegar todas las tareas a Claude sin verificación posterior', 'Identificar tareas, usar datos pasados conocidos para probar a Claude, evaluar resultados y refinar el enfoque', 'Usar Claude solo para tareas donde el resultado no importa mucho', 'Automatizar completamente el análisis sin intervención humana'],
+    correct: 1,
+    feedback: 'El delegation-diligence loop consiste en: identificar una tarea analítica, encontrar datos pasados donde ya tienes los resultados correctos, pedir a Claude que reproduzca el análisis, evaluar sistemáticamente los resultados y refinar.'
+  },
+
+  // ==================== SECCIÓN 4: App de Escritorio — Chat, Cowork, Code ====================
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Cuántos modos tiene la app de escritorio de Claude?',
+    options: ['2 modos: Chat y Code', '3 modos: Chat, Cowork y Code', '4 modos: Chat, Research, Cowork y Code', '5 modos según el plan de suscripción'],
+    correct: 1,
+    feedback: 'La app de escritorio de Claude tiene tres modos: Chat (para preguntas e intercambios rápidos), Cowork (para trabajo complejo y sostenido) y Code (para construir software).'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Qué motor comparten Cowork y Code en la app de escritorio?',
+    options: ['El mismo motor que Claude.ai web', 'Claude Code — local en tu máquina, capaz de trabajo independiente', 'Un motor específico de escritorio diferente a todos los demás', 'El motor de API con acceso completo a internet'],
+    correct: 1,
+    feedback: 'Cowork y Code funcionan con el mismo motor: ambos son Claude Code por debajo — local en tu máquina, capaces de trabajo independiente, y pueden lanzar sub-agentes para tareas largas.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Cómo se activa la "Quick entry" (entrada rápida) en el modo Chat de la app de escritorio (Mac)?',
+    options: ['Haciendo clic en el ícono de Claude en la barra de menú', 'Presionando doble la tecla Option en Mac', 'Usando el atajo Cmd+Space', 'Desde el menú de la aplicación'],
+    correct: 1,
+    feedback: 'La Quick entry se activa presionando dos veces la tecla Option en Mac. Esto despliega Claude sobre lo que estés trabajando en una ventana compacta que permanece encima mientras cambias entre apps.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Cuál es la principal diferencia entre el modo Chat en la app de escritorio y Claude.ai web?',
+    options: ['La app de escritorio usa un modelo diferente e inferior', 'La app de escritorio añade quick entry, capturas de pantalla, dictado y conectores de escritorio', 'Claude.ai web tiene más funciones que la app de escritorio', 'No hay diferencia, son idénticos'],
+    correct: 1,
+    feedback: 'El Chat en la app de escritorio es el mismo Claude de claude.ai más funciones nativas: quick entry, capturas de pantalla y compartir ventanas, dictado y conectores de escritorio para trabajar con apps locales.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Para qué tipo de trabajo está optimizado Cowork?',
+    options: ['Respuestas rápidas y preguntas simples', 'Trabajo complejo o sostenido: investigación, análisis, organización de archivos y documentos terminados', 'Construcción y despliegue de software', 'Conversaciones de aprendizaje e iteración'],
+    correct: 1,
+    feedback: 'Cowork está optimizado para trabajo complejo o sostenido: investigación exhaustiva, análisis financiero de múltiples fuentes, revisión de contratos de principio a fin, y producción de documentos terminados y entregables complejos.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Qué son los "Scheduled tasks" (tareas programadas) en Cowork?',
+    options: ['Recordatorios para que el usuario haga tareas manualmente', 'Tareas que Claude maneja automáticamente en un horario definido, como briefings diarios o resúmenes semanales', 'Tareas en cola para ejecutarse en orden cuando Claude está disponible', 'Acciones programadas que requieren aprobación manual cada vez'],
+    correct: 1,
+    feedback: 'Las tareas programadas permiten que Claude maneje trabajo recurrente en un horario: un briefing diario de Slack y calendario, un resumen semanal de lo entregado, o una clasificación matutina del inbox. Se definen una vez y Claude las ejecuta automáticamente.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Qué son los "Subagents" en Cowork?',
+    options: ['Versiones reducidas de Claude para tareas simples', 'Trabajadores en segundo plano que Claude lanza para manejar partes de una tarea en paralelo', 'Usuarios adicionales que pueden colaborar en una misma tarea', 'Plugins de terceros que extienden las capacidades de Cowork'],
+    correct: 1,
+    feedback: 'Los subagents son trabajadores en segundo plano que Claude lanza para manejar partes de una tarea en paralelo. Para algo complejo —como un brief de investigación de múltiples fuentes— Claude divide en subtareas, asigna cada una a un subagente y coordina los resultados.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Qué es "Dispatch" en el contexto de Cowork?',
+    options: ['Una función para enviar archivos terminados por email', 'Un hilo de conversación persistente que permite continuar conversaciones de Cowork desde el móvil', 'Un modo de despacho rápido para tareas urgentes', 'Una función de delegación de tareas a otros usuarios'],
+    correct: 1,
+    feedback: 'Dispatch es un hilo de conversación persistente que permite continuar las conversaciones de Cowork desde el móvil. Desde la app móvil de Claude puedes delegar tareas que usan todo lo de tu computadora (archivos, conectores, apps de escritorio).'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿Cuál es el orden de prioridad que sigue Claude en Cowork al acceder a herramientas?',
+    options: ['Screen interaction primero, luego Chrome, luego conectores', 'Conectores primero, luego Chrome, luego interacción con pantalla', 'Plugins primero, luego conectores, luego búsqueda web', 'Chrome primero, luego plugins, luego conectores'],
+    correct: 1,
+    feedback: 'Claude sigue este orden de prioridad en Cowork: conectores primero, luego Chrome, luego interacción con pantalla. Siempre elige el camino más rápido y confiable disponible.'
+  },
+  {
+    section: 'App de Escritorio',
+    sectionIdx: 4,
+    text: '¿En qué se diferencia el acceso a archivos entre Cowork y Code?',
+    options: ['Cowork tiene acceso total al sistema de archivos; Code solo a carpetas compartidas', 'Cowork trabaja en un espacio contenido con las carpetas que compartes; Code tiene acceso completo al sistema de archivos, terminal y herramientas de desarrollo', 'Ambos tienen exactamente el mismo nivel de acceso a archivos', 'Code no puede acceder a archivos locales, solo a repositorios remotos'],
+    correct: 1,
+    feedback: 'La diferencia clave: Cowork corre en un espacio contenido limitado a las carpetas que compartes. Code corre directamente en tu proyecto con acceso completo al sistema de archivos, terminal y herramientas de desarrollo.'
+  },
+
+  // ==================== SECCIÓN 5: Code y Evaluaciones ====================
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Cuáles son los tres modos de interacción del tab Code en la app de escritorio?',
+    options: ['Write, Review y Deploy', 'Ask, Code y Plan', 'Draft, Edit y Publish', 'Local, Cloud y Hybrid'],
+    correct: 1,
+    feedback: 'El tab Code ofrece tres modos: Ask (Claude propone cada cambio y espera tu aprobación), Code (Claude aplica cambios automáticamente pero consulta antes de ejecutar comandos de terminal) y Plan (Claude describe su enfoque completo antes de tocar nada).'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Qué son las "evals" (evaluaciones) mencionadas en el material del curso?',
+    options: ['Evaluaciones automáticas de rendimiento de Claude por Anthropic', 'Formas sistemáticas de probar qué tan bien Claude realiza tipos específicos de tareas que importan al usuario', 'Métricas de facturación por uso de la API', 'Certificaciones oficiales de competencia en IA'],
+    correct: 1,
+    feedback: 'Las evals son formas sistemáticas de evaluar cómo Claude rinde en tipos específicos de tareas que te importan. Te ayudan a desarrollar intuición sobre dónde Claude añade más valor en tu flujo de trabajo.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Cuál es el primer paso recomendado para hacer una evaluación simple de Claude?',
+    options: ['Escribir prompts de prueba sin contexto previo', 'Recopilar 5-10 ejemplos de una tarea que haces regularmente', 'Comparar los resultados directamente con los de otros modelos', 'Habilitar el modo de pensamiento extendido'],
+    correct: 1,
+    feedback: 'El primer paso es recopilar 5-10 ejemplos de una tarea que haces regularmente: emails que hayas escrito, informes que hayas creado, análisis que hayas realizado. Estos son tus casos de prueba con resultados conocidos.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Cuáles son los dos entornos donde puede trabajar el tab Code?',
+    options: ['Windows y macOS', 'Local (en tu computadora) y Remote (conectado a un repositorio GitHub en la nube)', 'Frontend y Backend', 'Desarrollo y Producción'],
+    correct: 1,
+    feedback: 'El tab Code trabaja en dos entornos: Local (seleccionas una carpeta y Claude trabaja directamente con esos archivos, pudiendo acceder a herramientas locales) y Remote (conectas un repositorio GitHub y Claude trabaja en un entorno en la nube).'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Cuál es una ventaja del entorno Remote en el tab Code?',
+    options: ['Es más rápido que el entorno local', 'Las sesiones continúan aunque cierres la app, útil para refactorizaciones grandes', 'No requiere conexión a internet', 'Tiene acceso directo al sistema de archivos local'],
+    correct: 1,
+    feedback: 'La ventaja clave del entorno Remote es que las sesiones continúan aunque cierres la aplicación. Puedes iniciar una gran refactorización y revisarla más tarde. Es ideal para codebases grandes o cuando quieres mantener el desarrollo fuera de tu máquina local.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Qué muestra el modo "Ask" en el tab Code antes de hacer cambios?',
+    options: ['Solo una lista de archivos que serán modificados', 'Un visual diff que puedes revisar y aceptar o rechazar antes de que se modifique cualquier cosa', 'Un resumen en texto de los cambios propuestos', 'Nada: los cambios se aplican directamente'],
+    correct: 1,
+    feedback: 'En el modo Ask, Claude propone cada cambio y espera tu aprobación. Revisas un visual diff y puedes aceptar o rechazar antes de que cualquier cosa sea modificada. Es el modo con mayor control manual.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Qué hace el modo "Plan" en el tab Code?',
+    options: ['Planifica el uso de tokens y costos de la operación', 'Claude describe su enfoque completo antes de tocar nada; un visor de plan dedicado permite revisar y volver a la estrategia', 'Crea un roadmap del proyecto automáticamente', 'Genera documentación antes de escribir código'],
+    correct: 1,
+    feedback: 'En el modo Plan, Claude describe su enfoque completo antes de tocar cualquier cosa. Un visor de plan dedicado te permite revisar y volver a la estrategia mientras el trabajo avanza. Máxima transparencia antes de ejecutar.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Para qué casos es útil el modo "Remote" en el tab Code según el material?',
+    options: ['Para proyectos que solo tienen archivos de configuración', 'Para codebases grandes o cuando quieres mantener el desarrollo fuera de tu máquina local', 'Para proyectos sin dependencias externas', 'Para colaboración en tiempo real con otros usuarios'],
+    correct: 1,
+    feedback: 'El entorno Remote es bueno para codebases grandes o cuando quieres mantener el desarrollo fuera de tu máquina local. Las sesiones persisten aunque cierres la app.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿A qué planes de suscripción está disponible el tab Code?',
+    options: ['Solo al plan Enterprise', 'A todos los planes incluyendo Free', 'A Pro, Max, Team y Enterprise', 'Solo a planes de pago Pro y Max'],
+    correct: 2,
+    feedback: 'El tab Code está disponible para usuarios de planes Pro, Max, Team y Enterprise. No está disponible en el plan Free.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Qué se recomienda hacer si, después de varios refinamientos, no puedes validar que Claude produce resultados correctos en una tarea?',
+    options: ['Seguir intentando con diferentes modelos hasta que funcione', 'Concluir que esa tarea no debería ser delegada a Claude', 'Reportar el problema a Anthropic para que lo corrijan', 'Simplificar la tarea hasta que Claude pueda completarla'],
+    correct: 1,
+    feedback: 'Si después de varios refinamientos no puedes validar que Claude llega a resultados correctos, has aprendido que esa no es una tarea que deberías delegar. La validación construye confianza, pero también enseña qué NO delegar.'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Cuál de las siguientes es una competencia del 4D Framework que se relaciona directamente con evaluar outputs de IA?',
+    options: ['Delegation — decidir qué trabajo hace la IA', 'Description — comunicarse efectivamente con la IA', 'Discernment — evaluar críticamente los outputs, procesos y comportamientos de la IA', 'Diligence — usar IA de forma responsable y ética'],
+    correct: 2,
+    feedback: 'Discernment (discernimiento) es la competencia del 4D Framework relacionada con evaluar críticamente los outputs de IA, su calidad, precisión y adecuación. Es esencial para el proceso de evaluación (evals).'
+  },
+  {
+    section: 'Code y Evaluaciones',
+    sectionIdx: 5,
+    text: '¿Qué dice el material sobre la responsabilidad cuando Claude ayuda con análisis de datos?',
+    options: ['Claude asume toda la responsabilidad por los resultados automáticamente', 'La validación construye confianza, pero no elimina la responsabilidad del usuario de verificar y ser transparente sobre el rol de la IA', 'La responsabilidad es compartida 50/50 entre el usuario y Anthropic', 'Una vez validado, el usuario no necesita revisar los resultados futuros'],
+    correct: 1,
+    feedback: 'El material es claro: la validación construye confianza, pero no elimina la responsabilidad. El usuario sigue siendo responsable de verificar que los resultados tengan sentido y de ser transparente sobre el rol de la IA en el análisis.'
+  }
+];
+
+// ==================== STATE ====================
+var state = {
+  answers: {},
+  totalQuestions: questions.length
+};
+
+// Group by section
+var sections = {};
+questions.forEach(function(q, i) {
+  if (!sections[q.section]) sections[q.section] = [];
+  sections[q.section].push(i);
+});
+
+function updateProgress() {
+  var answered = Object.keys(state.answers).length;
+  var pct = (answered / state.totalQuestions) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = answered + ' / ' + state.totalQuestions;
+
+  var correct = 0;
+  Object.keys(state.answers).forEach(function(k) {
+    if (state.answers[k].correct) correct++;
+  });
+  var scoreEl = document.getElementById('scoreDisplay');
+  scoreEl.textContent = correct + ' / ' + answered;
+  if (answered > 0) scoreEl.classList.add('active');
+
+  var navEl = document.getElementById('stickyNav');
+  document.getElementById('navAnswered').textContent = answered;
+  navEl.classList.toggle('visible', answered >= 5);
+}
+
+function answerQuestion(qIdx, optIdx) {
+  if (state.answers[qIdx]) return;
+  var q = questions[qIdx];
+  var isCorrect = optIdx === q.correct;
+  state.answers[qIdx] = { chosen: optIdx, correct: isCorrect };
+
+  var card = document.getElementById('qcard-' + qIdx);
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  var opts = card.querySelectorAll('.option-btn');
+  opts.forEach(function(btn, i) {
+    btn.disabled = true;
+    if (i === q.correct) {
+      btn.classList.add(isCorrect ? 'correct' : 'show-correct');
+    }
+    if (i === optIdx && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  var fb = card.querySelector('.feedback-box');
+  fb.classList.add(isCorrect ? 'correct-fb' : 'wrong-fb');
+  fb.querySelector('.feedback-text').textContent = q.feedback;
+
+  updateProgress();
+}
+
+function renderQuiz() {
+  var container = document.getElementById('quizContainer');
+  var html = '';
+  var sectionNames = Object.keys(sections);
+  var letters = ['A','B','C','D'];
+
+  sectionNames.forEach(function(sName, sI) {
+    html += '<div class="section-header">';
+    html += '<div class="section-number">' + (sI+1) + '</div>';
+    html += '<div class="section-info"><h2>' + sName + '</h2>';
+    html += '<p>' + sections[sName].length + ' preguntas</p></div></div>';
+
+    sections[sName].forEach(function(qIdx) {
+      var q = questions[qIdx];
+      var localNum = sections[sName].indexOf(qIdx) + 1;
+      html += '<div class="question-card" id="qcard-' + qIdx + '">';
+      html += '<div class="question-meta">';
+      html += '<span class="question-num">Pregunta ' + localNum + '</span>';
+      html += '<span class="question-dot"></span>';
+      html += '<span class="question-section-tag">' + sName + '</span>';
+      html += '</div>';
+      html += '<div class="question-text">' + q.text + '</div>';
+      html += '<div class="options-grid">';
+      q.options.forEach(function(opt, oI) {
+        html += '<button class="option-btn" onclick="answerQuestion(' + qIdx + ',' + oI + ')">';
+        html += '<span class="option-badge">' + letters[oI] + '</span>';
+        html += '<span class="option-text">' + opt + '</span>';
+        html += '</button>';
+      });
+      html += '</div>';
+      html += '<div class="feedback-box"><div class="feedback-label">Explicación</div><div class="feedback-text"></div></div>';
+      html += '</div>';
+    });
+
+    if (sI < sectionNames.length - 1) {
+      html += '<div class="quiz-divider"></div>';
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function showResults() {
+  var panel = document.getElementById('resultsPanel');
+  var answered = Object.keys(state.answers).length;
+  var correct = 0;
+  Object.keys(state.answers).forEach(function(k) {
+    if (state.answers[k].correct) correct++;
+  });
+  var pct = answered > 0 ? Math.round((correct / state.totalQuestions) * 100) : 0;
+
+  var emoji = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+  var msg = pct >= 80 ? '¡Excelente dominio del capítulo!' : pct >= 60 ? 'Buen trabajo, sigue practicando.' : 'Repasa el material y vuelve a intentarlo.';
+
+  var breakdownHtml = '';
+  var sectionNames = Object.keys(sections);
+  sectionNames.forEach(function(sName) {
+    var total = sections[sName].length;
+    var sc = 0;
+    sections[sName].forEach(function(qIdx) {
+      if (state.answers[qIdx] && state.answers[qIdx].correct) sc++;
+    });
+    var pctSec = total > 0 ? Math.round((sc / total) * 100) : 0;
+    var barClass = pctSec >= 75 ? 'good' : pctSec >= 50 ? '' : 'bad';
+    breakdownHtml += '<div class="breakdown-row">';
+    breakdownHtml += '<span class="breakdown-label">' + sName + '</span>';
+    breakdownHtml += '<div class="breakdown-bar-wrap"><div class="breakdown-bar-fill ' + barClass + '" style="width:' + pctSec + '%"></div></div>';
+    breakdownHtml += '<span class="breakdown-stat">' + sc + '/' + total + '</span>';
+    breakdownHtml += '</div>';
+  });
+
+  panel.innerHTML = '<div class="results-icon">' + emoji + '</div>' +
+    '<div class="results-title">' + msg + '</div>' +
+    '<div class="results-score">' + pct + '%</div>' +
+    '<div class="results-sub">' + correct + ' correctas de ' + state.totalQuestions + ' preguntas</div>' +
+    '<div class="section-breakdown">' + breakdownHtml + '</div>' +
+    '<button class="retry-btn" onclick="retryQuiz()">Reintentar quiz →</button>';
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('stickyNav').classList.remove('visible');
+}
+
+function retryQuiz() {
+  state.answers = {};
+  document.getElementById('resultsPanel').classList.remove('visible');
+  renderQuiz();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+updateProgress();
+</script>
+</body>
+</html>
