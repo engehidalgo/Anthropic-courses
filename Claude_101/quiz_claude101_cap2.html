@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Claude 101 — Capítulo 2: Organizando tu trabajo y conocimiento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --near-black: #111111;
+    --dark: #1a1a1a;
+    --mid: #2a2a2a;
+    --border: #333;
+    --text: #e8e6e1;
+    --muted: #888;
+    --orange: #d4783a;
+    --orange-light: #e8934f;
+    --orange-glow: rgba(212,120,58,0.15);
+    --blue: #3a7bd4;
+    --blue-light: #5a9be8;
+    --green: #2d7a4f;
+    --green-light: #3da066;
+    --green-bg: rgba(45,122,79,0.12);
+    --red: #8b2424;
+    --red-light: #c43030;
+    --red-bg: rgba(139,36,36,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #081018 40%, #0f0f0f 70%, #0a0a0a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0 14px;
+    flex-wrap: wrap;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+  .asterisk { width: 32px; height: 32px; color: var(--orange); flex-shrink: 0; }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span { color: var(--orange); }
+
+  .header-meta { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+  .chapter-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .score-pill {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+
+  .score-pill.active {
+    color: var(--blue-light);
+    border-color: rgba(58,123,212,0.4);
+    background: rgba(58,123,212,0.1);
+  }
+
+  .progress-container {
+    background: var(--near-black);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 71px;
+    z-index: 99;
+  }
+
+  .progress-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue-light));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+    box-shadow: 0 0 8px rgba(90,155,232,0.5);
+  }
+
+  .progress-text {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .hero {
+    text-align: center;
+    padding: 48px 0 56px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(ellipse, rgba(58,123,212,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto 32px;
+    font-weight: 300;
+  }
+
+  .hero-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+
+  .hero-stat { text-align: center; }
+
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--orange);
+  }
+
+  .hero-stat-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 48px 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .section-info h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .section-info p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .question-card {
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .question-card.answered-correct {
+    border-color: var(--green);
+    background: linear-gradient(135deg, var(--near-black), rgba(45,122,79,0.05));
+  }
+
+  .question-card.answered-wrong {
+    border-color: var(--red);
+    background: linear-gradient(135deg, var(--near-black), rgba(139,36,36,0.05));
+  }
+
+  .question-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+
+  .question-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .question-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+
+  .question-section-tag {
+    font-size: 0.65rem;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.2);
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .question-text { font-size: 0.97rem; color: var(--text); margin-bottom: 20px; line-height: 1.55; font-weight: 400; }
+
+  .options-grid { display: grid; gap: 8px; }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: rgba(212,120,58,0.4);
+    background: rgba(212,120,58,0.05);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .option-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .option-text { font-size: 0.9rem; color: var(--text); line-height: 1.45; padding-top: 2px; font-weight: 300; }
+
+  .option-btn.correct { border-color: var(--green-light); background: var(--green-bg); }
+  .option-btn.correct .option-badge { background: var(--green); border-color: var(--green-light); color: #fff; }
+
+  .option-btn.wrong { border-color: var(--red-light); background: var(--red-bg); }
+  .option-btn.wrong .option-badge { background: var(--red); border-color: var(--red-light); color: #fff; }
+
+  .option-btn.show-correct { border-color: var(--green); background: rgba(45,122,79,0.06); opacity: 0.7; }
+  .option-btn.show-correct .option-badge { background: var(--green); border-color: var(--green-light); color: #fff; }
+
+  .feedback-box {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 300;
+    display: none;
+    animation: fadeSlide 0.25s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback-box.correct-fb { display: block; background: var(--green-bg); border: 1px solid var(--green); color: #7dd4a0; }
+  .feedback-box.wrong-fb { display: block; background: var(--red-bg); border: 1px solid var(--red-light); color: #e08080; }
+
+  .feedback-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .feedback-box.correct-fb .feedback-label { color: var(--green-light); }
+  .feedback-box.wrong-fb .feedback-label { color: var(--red-light); }
+
+  .results-panel {
+    display: none;
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-top: 48px;
+    text-align: center;
+    animation: fadeSlide 0.4s ease;
+  }
+
+  .results-panel.visible { display: block; }
+
+  .results-icon { font-size: 3rem; margin-bottom: 16px; }
+
+  .results-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .results-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 16px 0;
+    color: var(--orange);
+  }
+
+  .results-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
+
+  .section-breakdown { display: grid; gap: 12px; margin: 24px 0; text-align: left; }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .breakdown-label { flex: 1; font-size: 0.85rem; color: var(--text); font-weight: 400; }
+
+  .breakdown-stat { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+
+  .breakdown-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+  .breakdown-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+  .breakdown-bar-fill.good { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+  .breakdown-bar-fill.bad { background: linear-gradient(90deg, var(--red), var(--red-light)); }
+
+  .retry-btn {
+    margin-top: 24px;
+    padding: 14px 32px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .retry-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+  .retry-btn:active { transform: translateY(0); }
+
+  .quiz-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  .sticky-nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .sticky-nav.visible { opacity: 1; pointer-events: all; }
+
+  .sticky-nav-text { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  .sticky-nav-text strong { color: var(--text); font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  .see-results-btn {
+    padding: 10px 20px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .see-results-btn:hover { background: var(--orange-light); }
+
+  @media (max-width: 600px) {
+    .main { padding: 24px 16px 100px; }
+    .question-card { padding: 20px; }
+    .header-inner { gap: 8px; }
+    .hero-stats { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class='header'>
+  <div class='header-inner'>
+    <div class='logo'>
+      <svg class='asterisk' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <line x1='50' y1='5' x2='50' y2='95' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='27.5' x2='95' y2='72.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='72.5' x2='95' y2='27.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+      </svg>
+      <span class='logo-text'>Claude <span>101</span></span>
+    </div>
+    <div class='header-meta'>
+      <span class='chapter-badge'>Cap. 2</span>
+      <span class='score-pill' id='scoreDisplay'>0 / 0</span>
+    </div>
+  </div>
+</header>
+
+<div class='progress-container'>
+  <div class='progress-inner'>
+    <div class='progress-bar-wrap'>
+      <div class='progress-bar-fill' id='progressBar'></div>
+    </div>
+    <span class='progress-text' id='progressText'>0 / 50</span>
+  </div>
+</div>
+
+<main class='main'>
+  <div class='hero'>
+    <div class='hero-eyebrow'>Anthropic Academy · Claude 101</div>
+    <h1 class='hero-title'>Organizando tu trabajo y conocimiento</h1>
+    <p class='hero-subtitle'>Pon a prueba lo que aprendiste sobre Projects, Skills y Artifacts — y cómo integrarlos en tu flujo de trabajo.</p>
+    <div class='hero-stats'>
+      <div class='hero-stat'><div class='hero-stat-num'>50</div><div class='hero-stat-label'>Preguntas</div></div>
+      <div class='hero-stat'><div class='hero-stat-num'>4</div><div class='hero-stat-label'>Secciones</div></div>
+      <div class='hero-stat'><div class='hero-stat-num'>~20</div><div class='hero-stat-label'>Minutos</div></div>
+    </div>
+  </div>
+
+  <div id='quizContainer'></div>
+  <div class='results-panel' id='resultsPanel'></div>
+</main>
+
+<div class='sticky-nav' id='stickyNav'>
+  <span class='sticky-nav-text'>Respondidas: <strong id='navAnswered'>0</strong> de <strong>50</strong></span>
+  <button class='see-results-btn' onclick='showResults()'>Ver resultados →</button>
+</div>
+
+<script>
+'use strict';
+
+var questions = [
+
+  // ==================== SECCIÓN 1: Projects — Conceptos Fundamentales ====================
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Cuál es la definición más precisa de un Project en Claude?',
+    options: [
+      'Una carpeta para guardar archivos de texto en la nube',
+      'Un entorno autocontenido con su propio historial de chats, base de conocimiento y configuraciones personalizadas',
+      'Un tipo de conversación más larga que las normales',
+      'Un plan de suscripción especial con más funciones'
+    ],
+    correct: 1,
+    feedback: 'Los Projects son entornos autocontenidos (self-contained environments) con su propio historial de chats, bases de conocimiento específicas y configuraciones personalizadas. Son espacios de trabajo dedicados para flujos de trabajo específicos.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Para qué tipos de trabajo son más valiosos los Projects?',
+    options: [
+      'Preguntas únicas y rápidas que no requieren seguimiento',
+      'Trabajo en curso con materiales de referencia repetidos, requisitos consistentes de respuesta o necesidades de colaboración en equipo',
+      'Tareas de codificación que requieren acceso al sistema de archivos local',
+      'Conversaciones de aprendizaje con extended thinking'
+    ],
+    correct: 1,
+    feedback: 'Los Projects son especialmente valiosos para trabajo en curso (ongoing), no para preguntas puntuales. Son ideales cuando tienes materiales de referencia que usarás repetidamente, requisitos consistentes de respuesta, o necesidades de colaboración en equipo.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué es el "Project knowledge" (conocimiento del proyecto)?',
+    options: [
+      'Un resumen automático que Claude genera sobre el proyecto',
+      'Los documentos relevantes cargados al proyecto que Claude referencia automáticamente en todos los chats',
+      'Las instrucciones de proyecto que guían el comportamiento de Claude',
+      'El historial completo de todas las conversaciones del proyecto'
+    ],
+    correct: 1,
+    feedback: 'El Project knowledge son los documentos que subes al proyecto. Cada vez que chateas con Claude dentro del proyecto, ese conocimiento es considerado automáticamente junto con tu prompt, sin necesidad de volver a cargar los archivos.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Cuántos pasos describe el material para crear tu primer proyecto?',
+    options: ['2 pasos', '3 pasos', '4 pasos', '5 pasos'],
+    correct: 1,
+    feedback: 'El material describe exactamente 3 pasos: Paso 1 — configurar el proyecto (nombre, descripción, visibilidad). Paso 2 — añadir instrucciones de proyecto. Paso 3 — construir la base de conocimiento cargando archivos.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Dónde se crea un nuevo proyecto en Claude.ai?',
+    options: [
+      'En Settings > Projects > New Project',
+      'Navegando a claude.ai/projects y haciendo clic en "+ New Project" en la esquina superior derecha',
+      'Desde el menú de herramientas en una conversación existente',
+      'Solo desde la app de escritorio, no desde la web'
+    ],
+    correct: 1,
+    feedback: 'Para crear un nuevo proyecto: pasa el cursor sobre la barra lateral izquierda y haz clic en "Projects", o navega directamente a claude.ai/projects, luego haz clic en "+ New Project" en la esquina superior derecha.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué ocurre con el contexto entre chats separados dentro de un mismo proyecto?',
+    options: [
+      'El contexto se comparte automáticamente entre todos los chats del proyecto',
+      'El contexto no se comparte entre chats distintos a menos que la información esté en la base de conocimiento del proyecto',
+      'Cada chat tiene acceso al historial completo de todos los otros chats del proyecto',
+      'El contexto se comparte solo si el usuario lo activa manualmente desde la configuración'
+    ],
+    correct: 1,
+    feedback: 'Importante: el contexto NO se comparte entre chats separados dentro de un proyecto, a menos que esa información esté añadida a la base de conocimiento del proyecto. La base de conocimiento es el puente entre conversaciones distintas.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Para qué sirve el campo "descripción" al crear un proyecto?',
+    options: [
+      'Claude usa la descripción directamente como contexto en todas sus respuestas dentro del proyecto',
+      'Ayuda al usuario y a sus compañeros a entender el propósito del proyecto, aunque Claude no la ve directamente',
+      'La descripción reemplaza a las instrucciones de proyecto',
+      'Es un prompt inicial que Claude usa solo en el primer chat del proyecto'
+    ],
+    correct: 1,
+    feedback: 'Según el material, Claude no ve directamente la descripción del proyecto. Su propósito es ayudarte a ti y a tus compañeros de equipo a entender para qué sirve el proyecto. Las instrucciones son lo que Claude sí lee y aplica.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué tipos de visibilidad se pueden configurar para un proyecto?',
+    options: [
+      'Solo privado o solo público en internet',
+      'Privado (uso personal) o compartido con la organización (para usuarios Claude for Work)',
+      'Privado, compartido con el equipo, y público en internet para todos',
+      'La visibilidad no se puede configurar una vez creado el proyecto'
+    ],
+    correct: 1,
+    feedback: 'Al configurar un proyecto puedes elegir mantenerlo privado (solo tú) o compartirlo con tu organización. La opción de compartir con la organización es exclusiva para usuarios de Claude for Work (Team y Enterprise).'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué sucede cuando el conocimiento del proyecto se acerca al límite de la ventana de contexto?',
+    options: [
+      'Claude muestra un error y detiene el procesamiento hasta que se eliminen archivos',
+      'El usuario debe reducir archivos manualmente antes de poder continuar',
+      'Claude habilita automáticamente el modo RAG (Retrieval Augmented Generation) para expandir la capacidad',
+      'Se crea automáticamente un nuevo proyecto vacío vinculado al original'
+    ],
+    correct: 2,
+    feedback: 'Cuando el conocimiento del proyecto se acerca al límite de la ventana de contexto, Claude habilita automáticamente el modo RAG. Esto permite expandir la capacidad del proyecto hasta 10 veces mientras mantiene la calidad de las respuestas.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué puede incluir una instrucción de proyecto efectiva?',
+    options: [
+      'Solo indicaciones sobre el tono de respuesta',
+      'Contexto sobre el trabajo, instrucciones de proceso, preferencias de tono/estilo, y requisitos específicos',
+      'Solo listas de palabras clave que Claude debe evitar o incluir',
+      'Únicamente el nombre del cliente o del proyecto'
+    ],
+    correct: 1,
+    feedback: 'Una instrucción de proyecto efectiva puede incluir: contexto sobre lo que estás trabajando, instrucciones de proceso (ej: "primero considera la estructura, luego escribe"), preferencias de tono y estilo, y requisitos específicos como "siempre incluye un call-to-action".'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Cuál es la diferencia entre subir un archivo a la base de conocimiento del proyecto y adjuntarlo durante una conversación?',
+    options: [
+      'No hay diferencia funcional, ambas opciones tienen el mismo efecto en Claude',
+      'Los archivos en la base de conocimiento están disponibles en todos los chats del proyecto; los adjuntados durante una conversación aplican solo a ese chat',
+      'Adjuntar durante la conversación lo añade permanentemente a la base de conocimiento',
+      'Solo los archivos en la base de conocimiento pueden ser PDFs'
+    ],
+    correct: 1,
+    feedback: 'La diferencia es fundamental: los archivos en la base de conocimiento están disponibles en TODOS los chats del proyecto. Los archivos adjuntos durante una conversación son solo para ese chat específico y no se añaden a la base de conocimiento del proyecto.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Qué consejo de buenas prácticas da el material sobre nombrar archivos en la base de conocimiento?',
+    options: [
+      'Usar nombres cortos de máximo 8 caracteres para mayor eficiencia de procesamiento',
+      'Usar nombres descriptivos (ej: "Q4-2025-Brand-Guidelines.pdf") porque Claude los usa para entender y recuperar la información correcta',
+      'Usar solo números para los nombres de archivos para evitar ambigüedades',
+      'El nombre del archivo no importa, solo el contenido interno del documento'
+    ],
+    correct: 1,
+    feedback: 'El material indica que debes nombrar archivos de forma descriptiva porque Claude usa los nombres de archivo para entender y recuperar la información correcta. "Q4-2024-Brand-Guidelines.pdf" es mucho más útil para Claude que "document1.pdf".'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Cómo describe el material la experiencia del usuario cuando el proyecto está en modo RAG?',
+    options: [
+      'El modo RAG cambia significativamente la interfaz y el usuario debe aprender a operarlo',
+      'Habrá un indicador visual cuando el proyecto esté en modo RAG, pero la experiencia se siente igual: puedes subir documentos, chatear y recibir respuestas contextuales',
+      'El modo RAG requiere que el usuario seleccione manualmente qué documentos consultar',
+      'El modo RAG limita los tipos de archivos que se pueden cargar al proyecto'
+    ],
+    correct: 1,
+    feedback: 'Verás un indicador visual cuando tu proyecto tenga RAG habilitado, pero la experiencia se siente igual. Sigues pudiendo cargar documentos, chatear con Claude y obtener respuestas contextuales sin cambiar tu flujo de trabajo habitual.'
+  },
+  {
+    section: 'Projects — Conceptos Fundamentales',
+    sectionIdx: 1,
+    text: '¿Cuál de los siguientes ejemplos ilustra mejor el uso de instrucciones para automatizar un flujo de trabajo completo?',
+    options: [
+      '"Usa siempre un tono formal y evita el lenguaje coloquial en todas las respuestas"',
+      '"Cuando suba una transcripción de reunión, crea un resumen estructurado usando esta plantilla"',
+      '"Eres un experto en marketing B2B con 10 años de experiencia comprobada"',
+      '"Responde siempre en inglés independientemente del idioma de la pregunta"'
+    ],
+    correct: 1,
+    feedback: 'El material menciona explícitamente "When I upload a meeting transcript, create a structured summary using this template" como ejemplo de cómo las instrucciones pueden programar comportamientos completos: una condición (subir transcripción) dispara una acción específica (crear resumen con plantilla).'
+  },
+
+  // ==================== SECCIÓN 2: Projects — Colaboración y Permisos ====================
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cuántos niveles de permisos existen en los proyectos compartidos de Claude for Work?',
+    options: ['2 niveles', '3 niveles', '4 niveles', '5 niveles'],
+    correct: 1,
+    feedback: 'Existen exactamente 3 niveles de permisos: Can view (solo lectura con derecho a chatear), Can edit (colaboración completa) y Owner/Creador del proyecto (control total, incluyendo quién puede verlo).'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Qué pueden hacer los miembros con permiso "Can view"?',
+    options: [
+      'Solo ver el nombre y descripción del proyecto sin acceder al contenido',
+      'Ver el contenido del proyecto, acceder al conocimiento y chatear, pero no hacer cambios',
+      'Modificar instrucciones pero no subir archivos nuevos',
+      'Ver y descargar archivos pero no chatear con Claude dentro del proyecto'
+    ],
+    correct: 1,
+    feedback: 'Los miembros con "Can view" tienen acceso de solo lectura con derechos de discusión: pueden ver el contenido del proyecto, acceder al conocimiento y chatear con Claude, pero no pueden realizar cambios al proyecto.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Qué pueden hacer los miembros con permiso "Can edit"?',
+    options: [
+      'Solo añadir nuevos archivos a la base de conocimiento del proyecto',
+      'Modificar instrucciones, actualizar el conocimiento, gestionar miembros y contribuir activamente al proyecto',
+      'Editar solo sus propios chats generados dentro del proyecto',
+      'Modificar instrucciones pero no gestionar a otros miembros'
+    ],
+    correct: 1,
+    feedback: 'Los miembros con "Can edit" tienen poder de colaboración completo: pueden modificar instrucciones, actualizar la base de conocimiento, gestionar otros miembros y contribuir activamente al proyecto.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cuál es la capacidad exclusiva del "Owner" (creador del proyecto)?',
+    options: [
+      'Es el único que puede chatear con Claude dentro del proyecto',
+      'Controla todo, incluyendo la visibilidad: puede compartir con personas específicas o hacer el proyecto visible para toda la organización',
+      'Es el único que puede subir archivos a la base de conocimiento del proyecto',
+      'Tiene acceso a modelos más avanzados que los demás miembros del proyecto'
+    ],
+    correct: 1,
+    feedback: 'El Owner controla todo, incluyendo la visibilidad. Puede compartir con personas específicas O hacer proyectos privados visibles para toda la organización — algo que los miembros con "Can edit" no pueden hacer.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cómo se notifica a los miembros cuando alguien comparte un proyecto con ellos?',
+    options: [
+      'Aparece solo una notificación dentro de la app de Claude, sin email',
+      'Reciben una notificación por email y pueden encontrar el proyecto en la pestaña "Shared with me"',
+      'Solo aparece en la sección "Shared with me" sin ninguna notificación adicional',
+      'El creador del proyecto debe enviar la URL del proyecto manualmente por otro canal'
+    ],
+    correct: 1,
+    feedback: 'Los miembros del equipo reciben notificaciones por email cuando alguien comparte un proyecto con ellos, y pueden encontrar los proyectos compartidos en la pestaña "Shared with me" dentro de Claude.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿En qué planes de Claude está disponible la función de colaboración en proyectos?',
+    options: [
+      'En todos los planes incluyendo Free',
+      'Solo en el plan Enterprise',
+      'En Claude for Work (planes Team y Enterprise)',
+      'En Pro, Max, Team y Enterprise'
+    ],
+    correct: 2,
+    feedback: 'La colaboración en proyectos es una función de Claude for Work, disponible en los planes Team y Enterprise. Los usuarios de planes Free, Pro y Max no pueden compartir proyectos con compañeros de equipo.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cómo se puede compartir un proyecto con múltiples personas a la vez?',
+    options: [
+      'Compartiendo el enlace público del proyecto en un canal de Slack',
+      'Copiando y pegando una lista de correos electrónicos (el proyecto aparecerá en la sección "Shared with you" de cada persona)',
+      'Exportando el proyecto como archivo y enviándolo por email',
+      'Solo se puede invitar de uno en uno usando el nombre de usuario de Claude'
+    ],
+    correct: 1,
+    feedback: 'El material menciona que puedes copiar y pegar una lista de correos electrónicos para compartir en masa. En este caso, el proyecto aparecerá automáticamente en la sección "Shared with you" de cada persona invitada.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cuál de los siguientes ejemplos del material ilustra mejor un caso de uso colaborativo con Projects?',
+    options: [
+      'Un usuario individual rastreando sus finanzas personales con Claude',
+      'Un equipo de marca creando un proyecto con directrices de voz y tono para que cualquier persona en la empresa escriba como marketer',
+      'Un desarrollador guardando snippets de código que solo él utiliza',
+      'Un usuario guardando plantillas de documentos para su uso personal exclusivo'
+    ],
+    correct: 1,
+    feedback: 'El material da explícitamente este ejemplo colaborativo: un equipo de marca puede crear un proyecto con directrices de voz y tono que ayuda a cualquier persona en la empresa a escribir como un marketer. Es el caso de uso colaborativo por excelencia.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Qué buena práctica sugiere el material respecto al alcance inicial de un proyecto?',
+    options: [
+      'Crear un único proyecto maestro para toda la organización desde el inicio',
+      'Empezar enfocado y luego expandir: comenzar con un caso de uso específico en lugar de intentar crear un proyecto para todo',
+      'Crear múltiples proyectos pequeños desde el inicio, uno por cada tarea posible',
+      'Esperar a tener todos los materiales listos antes de crear el primer proyecto'
+    ],
+    correct: 1,
+    feedback: 'El material recomienda comenzar con un enfoque específico en lugar de intentar crear un proyecto para todo. Siempre puedes añadir más contenido después. Esta estrategia evita proyectos caóticos y mejora la calidad de las respuestas de Claude.'
+  },
+  {
+    section: 'Projects — Colaboración y Permisos',
+    sectionIdx: 2,
+    text: '¿Cómo se puede referenciar un documento específico de la base de conocimiento al hacer una pregunta?',
+    options: [
+      'Usando comandos especiales como @archivo o #documento',
+      'Mencionando el nombre del documento en la pregunta: "Basado en nuestro informe Q3, ¿cuáles fueron las principales preocupaciones de los clientes?"',
+      'Seleccionando el documento en un menú desplegable antes de escribir el prompt',
+      'No es posible — Claude elige automáticamente qué documentos consultar sin orientación del usuario'
+    ],
+    correct: 1,
+    feedback: 'Puedes mencionar documentos específicos en tu pregunta para ayudar a Claude a focalizar su búsqueda. Por ejemplo: "Based on our Q3 report, what were the top customer concerns?" — el nombre del archivo orienta a Claude hacia el documento correcto.'
+  },
+
+  // ==================== SECCIÓN 3: Skills ====================
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cuál es la definición de Skills en Claude?',
+    options: [
+      'Plantillas predefinidas de prompts que el usuario puede guardar y reutilizar',
+      'Carpetas de instrucciones, scripts y recursos que Claude carga dinámicamente para mejorar el rendimiento en tareas especializadas',
+      'Funciones de accesibilidad para usuarios con necesidades especiales',
+      'Módulos de entrenamiento para que Claude aprenda nuevos idiomas y dialectos'
+    ],
+    correct: 1,
+    feedback: 'Las Skills son carpetas de instrucciones, scripts y recursos que Claude carga dinámicamente para mejorar el rendimiento en tareas especializadas. Funcionan como "paquetes de experiencia" que enseñan a Claude cómo completar tareas específicas de forma repetible.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cuáles son las dos categorías de Skills que existen?',
+    options: [
+      'Skills básicas y Skills avanzadas según complejidad de la tarea',
+      'Anthropic Skills (creadas por Anthropic) y Custom Skills (creadas por el usuario u organización)',
+      'Skills gratuitas incluidas en todos los planes y Skills de pago adicionales',
+      'Skills de texto y Skills de código según el tipo de output generado'
+    ],
+    correct: 1,
+    feedback: 'Existen dos categorías: Anthropic Skills (creadas y mantenidas por Anthropic, disponibles para todos los usuarios de pago, invocadas automáticamente) y Custom Skills (creadas por el usuario u organización para flujos de trabajo especializados).'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué tipos de documentos cubren las Anthropic Skills incluidas por defecto?',
+    options: [
+      'Solo archivos PDF y documentos de texto plano (.txt)',
+      'Capacidades mejoradas de creación de archivos Excel, Word, PowerPoint y PDF',
+      'Solo archivos de código fuente en múltiples lenguajes de programación',
+      'Imágenes, videos y archivos de audio en múltiples formatos'
+    ],
+    correct: 1,
+    feedback: 'Las Anthropic Skills incluyen capacidades mejoradas de creación de documentos para Excel, Word, PowerPoint y archivos PDF. Si has usado Claude para crear estos tipos de archivo, ya estabas usando Skills sin saberlo.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué requisito previo necesita estar habilitado para que funcionen las Skills?',
+    options: [
+      'La función de búsqueda web debe estar activada en Settings',
+      'La opción "Code execution and file creation" debe estar habilitada en Settings > Capabilities',
+      'Se requiere una conexión activa a Google Drive',
+      'El modo de extended thinking debe estar activo en la conversación'
+    ],
+    correct: 1,
+    feedback: 'Las Skills requieren el entorno de computación seguro y sandboxed de Claude para funcionar, por lo que necesitas tener habilitado "Code execution and file creation" en Settings > Capabilities antes de poder usar Skills.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿En qué planes está disponible la función de Skills?',
+    options: [
+      'En todos los planes incluyendo Free',
+      'Solo en el plan Enterprise',
+      'Es una vista previa de funciones para Pro, Max, Team y Enterprise (no disponible en Free)',
+      'Solo en Team y Enterprise'
+    ],
+    correct: 2,
+    feedback: 'Skills son actualmente una feature preview disponible para planes Pro, Max, Team y Enterprise. Los usuarios del plan Free pueden leer sobre el concepto pero no pueden usar la función prácticamente en sus conversaciones.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cómo invoca Claude las Anthropic Skills?',
+    options: [
+      'El usuario debe seleccionarlas manualmente desde un menú antes de cada tarea',
+      'Claude las invoca automáticamente cuando son relevantes, sin que el usuario necesite hacer nada especial',
+      'Se activan escribiendo un comando especial como /skill al inicio del prompt',
+      'Solo se activan si el usuario las menciona explícitamente por nombre en el prompt'
+    ],
+    correct: 1,
+    feedback: 'La belleza de las Skills es que generalmente no necesitas pensar en ellas. Claude maneja la selección automáticamente basándose en tu solicitud. Si pides crear un Excel, Claude activa la Skill de Excel sin que hagas nada.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cómo se puede crear una Custom Skill?',
+    options: [
+      'Requiere conocimientos de programación y editar archivos JSON de configuración manualmente',
+      'A través de una conversación con Claude: Claude te entrevista sobre tu flujo de trabajo y genera el archivo de la Skill estructurado',
+      'Solo los administradores de Enterprise pueden crear Custom Skills desde el panel de admin',
+      'Deben descargarse desde el marketplace oficial de Skills de Anthropic'
+    ],
+    correct: 1,
+    feedback: 'La forma más fácil de crear una Custom Skill es mediante conversación con Claude. Claude te entrevista sobre tu flujo de trabajo, te hace preguntas sobre el proceso, y cuando terminas genera automáticamente el archivo de la Skill correctamente estructurado.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cuál es la diferencia fundamental entre Projects y Skills?',
+    options: [
+      'Projects son para usuarios individuales y Skills para equipos de trabajo',
+      'Projects almacenan conocimiento que Claude referencia (el "qué"); Skills codifican cómo Claude ejecuta una tarea (el "cómo")',
+      'Projects son temporales por conversación y Skills son permanentes en la cuenta',
+      'Projects requieren archivos subidos y Skills funcionan solo con instrucciones de texto puro'
+    ],
+    correct: 1,
+    feedback: 'La distinción clave: Projects son hubs de conocimiento — almacenan el "qué" (información de referencia). Skills son máquinas procedimentales — codifican el "cómo" (los pasos específicos y metodología para ejecutar una tarea). Los dos se complementan.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Cómo se relacionan Projects y Skills entre sí?',
+    options: [
+      'Son completamente independientes y no pueden usarse juntos en el mismo flujo',
+      'Una Skill puede referenciar conocimiento almacenado en un proyecto (el proyecto provee el "qué", la Skill el "cómo")',
+      'Skills reemplazan a los Projects en las versiones más recientes de Claude',
+      'Los Projects solo funcionan correctamente cuando tienen Skills explícitamente asociadas'
+    ],
+    correct: 1,
+    feedback: 'El material explica que Projects y Skills se complementan: una Skill puede referenciar conocimiento almacenado en un proyecto. Por ejemplo, una Skill de "preparación de llamada al cliente" puede extraer perfiles de clientes de la base de conocimiento de un proyecto.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué tipo de flujos de trabajo son los mejores candidatos para una Custom Skill?',
+    options: [
+      'Tareas que se hacen solo una vez y requieren creatividad irrepetible',
+      'Flujos de trabajo repetibles con múltiples pasos que quieres que Claude ejecute de forma consistente cada vez',
+      'Tareas de investigación web donde los resultados siempre son únicos y variables',
+      'Conversaciones informales y creativas que no requieren estructura predefinida'
+    ],
+    correct: 1,
+    feedback: 'Las Skills brillan cuando tienes flujos de trabajo repetibles que quieres que Claude ejecute consistentemente: un análisis de varianza trimestral, un proceso de revisión de voz de marca, una lista de verificación de cumplimiento. Consistencia y repetibilidad son las claves.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué configuración especial requieren los planes Enterprise para habilitar Skills?',
+    options: [
+      'Los miembros individuales pueden habilitarlas directamente sin ninguna aprobación previa',
+      'Los Owners de la organización deben habilitar tanto "Code execution" como "Skills" en Admin settings antes de que los miembros puedan acceder',
+      'Se necesita una solicitud formal a Anthropic con varios días de espera para aprobación',
+      'Solo el primer usuario que activa Skills en la organización puede utilizarlas'
+    ],
+    correct: 1,
+    feedback: 'Para planes Enterprise, los Owners de la organización deben primero habilitar tanto Code execution como Skills en los Admin settings antes de que los miembros individuales puedan acceder a ellas. En planes Team, la vista previa está habilitada por defecto a nivel organizacional.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué capacidad adicional dan las Skills de archivo según el material?',
+    options: [
+      'Permiten compartir archivos con usuarios externos fuera de la organización sin restricciones',
+      'Claude puede trabajar con archivos reales (.xlsx, .pptx, .docx, .pdf) creando versiones actualizadas que se pueden descargar o abrir en Drive',
+      'Permiten a Claude editar directamente los archivos originales en Google Drive sin crear copias nuevas',
+      'Habilitan la firma electrónica de documentos con validez legal'
+    ],
+    correct: 1,
+    feedback: 'Las Skills de archivo permiten que Claude trabaje con archivos reales en un entorno contenido y cree versiones actualizadas. Nota importante: en Chat, Claude crea una nueva versión del documento en lugar de editar el original directamente. El usuario puede descargar o abrir en Drive.'
+  },
+  {
+    section: 'Skills',
+    sectionIdx: 3,
+    text: '¿Qué acciones ofrece el tab "Customize" de la barra lateral respecto a las Skills?',
+    options: [
+      'Solo ver las Skills disponibles sin posibilidad de editarlas',
+      'Ver todas las Skills disponibles y editar las propias, ya sea manualmente o chateando con Claude',
+      'Solo activar o desactivar Skills, sin capacidad de edición del contenido',
+      'Crear Skills únicamente desde plantillas predefinidas de Anthropic'
+    ],
+    correct: 1,
+    feedback: 'El tab "Customize" en la barra lateral muestra todas las Skills disponibles para ti y también te permite editar tus propias Skills, ya sea manualmente o chateando con Claude para que actualice la Skill por ti.'
+  },
+
+  // ==================== SECCIÓN 4: Artifacts ====================
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué son los Artifacts en Claude?',
+    options: [
+      'Archivos adjuntos que el usuario sube para que Claude los analice en el chat',
+      'Outputs independientes e interactivos que Claude crea en una ventana dedicada junto a la conversación',
+      'Un tipo especial de nota adhesiva o marcador dentro de la interfaz de Claude',
+      'Respuestas muy largas que Claude divide automáticamente en secciones numeradas'
+    ],
+    correct: 1,
+    feedback: 'Los Artifacts son outputs independientes e interactivos que Claude crea en una ventana dedicada junto a tu conversación. En lugar de obtener un bloque largo de código o texto en el chat, ves tu contenido renderizado y listo para usar.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Cuándo crea Claude automáticamente un Artifact?',
+    options: [
+      'Siempre que el usuario lo solicite explícitamente con el comando /artifact',
+      'Cuando el contenido es significativo y autocontenido (típicamente más de 15 líneas), es algo que el usuario querrá editar o reutilizar, y representa contenido que se sostiene por sí solo',
+      'Solo cuando se genera código de programación en cualquier lenguaje',
+      'Únicamente cuando el usuario tiene un plan Pro o superior'
+    ],
+    correct: 1,
+    feedback: 'Claude crea automáticamente un Artifact cuando el contenido cumple ciertos criterios: es significativo y autocontenido (típicamente más de 15 líneas), es algo que probablemente querrás editar/reutilizar, representa contenido complejo que se sostiene por sí solo y es algo que querrás referenciar luego.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Cuáles son los tipos de Artifacts que puede crear Claude?',
+    options: [
+      'Solo fragmentos de código y documentos de texto plano',
+      'Documentos, fragmentos de código, páginas HTML, imágenes SVG, diagramas Mermaid y componentes React',
+      'Solo páginas web y presentaciones PowerPoint',
+      'PDF, DOCX, XLSX y PPTX únicamente'
+    ],
+    correct: 1,
+    feedback: 'Claude puede crear: Documentos (markdown, texto, Word, PDF, PowerPoint, Excel), Fragmentos de código en cualquier lenguaje de programación, Páginas HTML completas, Imágenes SVG, Diagramas Mermaid (flowcharts, secuencia, Gantt, organigramas) y Componentes React interactivos.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Cuál es la diferencia entre un componente React como Artifact y un mockup estático?',
+    options: [
+      'No hay diferencia práctica, ambos son representaciones visuales equivalentes',
+      'Los componentes React como Artifacts incluyen lógica real y responden a la interacción del usuario; no son solo mockups visuales',
+      'Los componentes React son siempre más lentos de generar que los mockups estáticos',
+      'Los mockups tienen más funciones interactivas que los componentes React'
+    ],
+    correct: 1,
+    feedback: 'El material enfatiza que los componentes React como Artifacts no son solo mockups: incluyen lógica real y responden a la interacción del usuario. Puedes crear calculadoras, dashboards, juegos y visualizaciones de datos que realmente funcionan.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué opciones tienes una vez que Claude genera un Artifact?',
+    options: [
+      'Solo copiarlo al portapapeles del sistema',
+      'Ver diferentes formatos (preview y código subyacente), copiar el contenido, descargar el archivo, y ver exactamente qué generó Claude',
+      'Solo descargarlo directamente como PDF',
+      'Compartirlo únicamente de forma interna con usuarios de tu organización'
+    ],
+    correct: 1,
+    feedback: 'Desde la ventana del Artifact puedes: alternar entre preview (cómo se ve) y el código subyacente, copiar el contenido, descargar el Artifact como archivo a tu computadora, y ver exactamente qué generó Claude bajo el capó.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué sucede con tu chat cuando publicas un Artifact públicamente?',
+    options: [
+      'Todo el chat se hace público junto con el Artifact automáticamente',
+      'Solo la versión seleccionada del Artifact se hace pública; tu chat permanece completamente privado',
+      'El chat se borra automáticamente por razones de privacidad al publicar',
+      'El chat se comparte solo con tu organización, no con el público general'
+    ],
+    correct: 1,
+    feedback: 'Al publicar un Artifact, solo la versión seleccionada se hace pública — tu chat permanece privado. Cualquiera puede ver e interactuar con el Artifact sin necesitar una cuenta de Claude, y puede "remixearlo" abriéndolo en su propia conversación.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué significa que otros usuarios puedan "remix" un Artifact publicado?',
+    options: [
+      'Que pueden editarlo directamente en tu versión publicada y original',
+      'Que pueden abrir el Artifact en su propia conversación de Claude para modificarlo y construir sobre él',
+      'Que pueden añadir comentarios y sugerencias visibles públicamente para todos',
+      'Que pueden fusionarlo automáticamente con otros Artifacts existentes de su cuenta'
+    ],
+    correct: 1,
+    feedback: 'El "remix" permite que otros abran tu Artifact en su propia conversación de Claude para modificarlo y construir sobre él. Es una forma de colaboración asincrónica: tu trabajo original inspira o se extiende por la comunidad.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿En qué planes está disponible la publicación pública de Artifacts?',
+    options: [
+      'Solo en el plan Enterprise',
+      'Solo en Team y Enterprise',
+      'En Free, Pro y Max (y también para colaboración interna en Team y Enterprise)',
+      'En todos los planes incluyendo Free sin restricción'
+    ],
+    correct: 2,
+    feedback: 'La publicación pública de Artifacts está disponible para usuarios de planes Free, Pro y Max. Los usuarios de Team y Enterprise también pueden compartir Artifacts internamente con colegas, con autenticación del equipo requerida para el acceso.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Los Artifacts publicados aparecen en resultados de motores de búsqueda como Google?',
+    options: [
+      'Sí, están indexados públicamente por todos los motores de búsqueda importantes',
+      'No, los Artifacts publicados son accesibles vía enlace directo pero no están indexados por motores de búsqueda',
+      'Solo aparecen en la búsqueda interna de Anthropic.com',
+      'Depende de la configuración de privacidad elegida por el usuario al publicar'
+    ],
+    correct: 1,
+    feedback: 'Según el material, los Artifacts publicados no están indexados por los motores de búsqueda, por lo que no aparecerán en resultados de Google. Son accesibles vía enlace directo, pero no son descubribles mediante búsqueda orgánica.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué consejo de iteración da el material para trabajar con Artifacts complejos?',
+    options: [
+      'Describir todas las funciones deseadas de una vez en un único prompt muy detallado',
+      'Iterar de forma incremental: pedir una característica o un cambio a la vez para identificar qué funciona y detectar problemas temprano',
+      'Siempre empezar desde cero en una nueva conversación si el primer resultado no es perfecto',
+      'Usar siempre el modelo más potente para garantizar que el Artifact esté completo en el primer intento'
+    ],
+    correct: 1,
+    feedback: 'El material recomienda iterar de forma incremental: pedir a Claude que añada una característica o haga un cambio a la vez. Esto hace más fácil identificar qué funciona y detectar problemas temprano, en lugar de obtener un resultado masivo difícil de depurar.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Cuál es el mejor tipo de prompt para obtener buenos Artifacts?',
+    options: [
+      '"Construye un rastreador de presupuesto" — breve y directo',
+      '"Construye un rastreador de presupuesto mensual donde pueda ingresar gastos por categoría, ver un desglose en gráfico circular, y recibir una advertencia cuando exceda el presupuesto" — específico y detallado',
+      '"Crea el mejor rastreador de presupuesto posible usando tu criterio" — dejando libertad total a Claude',
+      '"Usa el mismo formato que el Artifact que hiciste antes" — referenciando trabajo previo'
+    ],
+    correct: 1,
+    feedback: 'El material es claro: ser específico produce mejores resultados. "Construye un rastreador de presupuesto mensual donde pueda ingresar gastos por categoría, ver un gráfico circular y recibir una advertencia cuando exceda el presupuesto" es mucho mejor que solo "construye un rastreador de presupuesto".'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué consejo da el material sobre describir el "usuario final" de un Artifact?',
+    options: [
+      'No es necesario mencionar al usuario final porque Claude lo infiere automáticamente del contexto',
+      'Describir quién usará el Artifact ayuda a Claude a tomar decisiones de diseño apropiadas: "para nuevos empleados" produce resultados muy diferentes a "para el equipo de ingeniería"',
+      'Solo importa mencionar el usuario final en Artifacts de tipo formulario web interactivo',
+      'El usuario final debe especificarse siempre en el prompt del sistema, no en el mensaje del usuario'
+    ],
+    correct: 1,
+    feedback: 'El material recomienda describir el usuario final porque ayuda a Claude a tomar decisiones de diseño apropiadas. "Este flowchart es para nuevos empleados" lleva a resultados muy diferentes a "es para el equipo de ingeniería", incluso con el mismo contenido base.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Cómo puedes despublicar un Artifact que ya hiciste público?',
+    options: [
+      'No es posible despublicar una vez que se ha hecho público',
+      'Contactando al soporte de Anthropic para que lo eliminen de sus servidores',
+      'Volviendo al Artifact y eliminando el acceso público desde ese mismo Artifact',
+      'Borrando el chat original donde se generó el Artifact'
+    ],
+    correct: 2,
+    feedback: 'El material indica que puedes despublicar un Artifact en cualquier momento volviendo a ese Artifact y eliminando el acceso público. La publicación no es permanente ni irreversible.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué pregunta de reflexión incluye el material sobre los Artifacts?',
+    options: [
+      '¿Cuánto cuesta generar Artifacts complejos en cada plan de suscripción?',
+      '¿Qué prototipo o herramienta te ayudaría a probar una idea rápidamente?',
+      '¿Cuántos Artifacts distintos puede generar Claude en una sola conversación?',
+      '¿Cuántos Artifacts puedes publicar públicamente por mes en el plan Free?'
+    ],
+    correct: 1,
+    feedback: 'El material incluye entre sus preguntas de reflexión: "What prototype or tool would help you test an idea quickly?" — invitando a pensar en cómo los Artifacts pueden acelerar la validación de ideas mediante prototipos funcionales reales.'
+  },
+  {
+    section: 'Artifacts',
+    sectionIdx: 4,
+    text: '¿Qué recomienda el material si Claude responde en el chat en lugar de crear un Artifact para algo sustancial?',
+    options: [
+      'Aceptar la respuesta en el chat y copiarla manualmente donde la necesites',
+      'Pedir explícitamente: "Por favor crea eso como un Artifact" para que Claude lo genere en la ventana dedicada',
+      'Cambiar al modelo Opus que genera Artifacts de forma más consistente',
+      'Iniciar una nueva conversación y reformular el prompt completamente desde cero'
+    ],
+    correct: 1,
+    feedback: 'El material indica claramente: si pides algo sustancial y Claude responde en el chat en lugar de crear un Artifact, simplemente di "Please create that as an artifact" y Claude moverá el contenido a la ventana de Artifact.'
+  }
+
+];
+
+// ==================== STATE ====================
+var state = {
+  answers: {},
+  totalQuestions: questions.length
+};
+
+var sections = {};
+questions.forEach(function(q, i) {
+  if (!sections[q.section]) sections[q.section] = [];
+  sections[q.section].push(i);
+});
+
+function updateProgress() {
+  var answered = Object.keys(state.answers).length;
+  var pct = (answered / state.totalQuestions) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = answered + ' / ' + state.totalQuestions;
+
+  var correct = 0;
+  Object.keys(state.answers).forEach(function(k) {
+    if (state.answers[k].correct) correct++;
+  });
+  var scoreEl = document.getElementById('scoreDisplay');
+  scoreEl.textContent = correct + ' / ' + answered;
+  if (answered > 0) scoreEl.classList.add('active');
+
+  var navEl = document.getElementById('stickyNav');
+  document.getElementById('navAnswered').textContent = answered;
+  navEl.classList.toggle('visible', answered >= 5);
+}
+
+function answerQuestion(qIdx, optIdx) {
+  if (state.answers[qIdx]) return;
+  var q = questions[qIdx];
+  var isCorrect = optIdx === q.correct;
+  state.answers[qIdx] = { chosen: optIdx, correct: isCorrect };
+
+  var card = document.getElementById('qcard-' + qIdx);
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  var opts = card.querySelectorAll('.option-btn');
+  opts.forEach(function(btn, i) {
+    btn.disabled = true;
+    if (i === q.correct) {
+      btn.classList.add(isCorrect ? 'correct' : 'show-correct');
+    }
+    if (i === optIdx && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  var fb = card.querySelector('.feedback-box');
+  fb.classList.add(isCorrect ? 'correct-fb' : 'wrong-fb');
+  fb.querySelector('.feedback-text').textContent = q.feedback;
+
+  updateProgress();
+}
+
+function renderQuiz() {
+  var container = document.getElementById('quizContainer');
+  var html = '';
+  var sectionNames = Object.keys(sections);
+  var letters = ['A','B','C','D'];
+
+  sectionNames.forEach(function(sName, sI) {
+    html += '<div class="section-header">';
+    html += '<div class="section-number">' + (sI+1) + '</div>';
+    html += '<div class="section-info"><h2>' + sName + '</h2>';
+    html += '<p>' + sections[sName].length + ' preguntas</p></div></div>';
+
+    sections[sName].forEach(function(qIdx) {
+      var q = questions[qIdx];
+      var localNum = sections[sName].indexOf(qIdx) + 1;
+      html += '<div class="question-card" id="qcard-' + qIdx + '">';
+      html += '<div class="question-meta">';
+      html += '<span class="question-num">Pregunta ' + localNum + '</span>';
+      html += '<span class="question-dot"></span>';
+      html += '<span class="question-section-tag">' + sName + '</span>';
+      html += '</div>';
+      html += '<div class="question-text">' + q.text + '</div>';
+      html += '<div class="options-grid">';
+      q.options.forEach(function(opt, oI) {
+        html += '<button class="option-btn" onclick="answerQuestion(' + qIdx + ',' + oI + ')">';
+        html += '<span class="option-badge">' + letters[oI] + '</span>';
+        html += '<span class="option-text">' + opt + '</span>';
+        html += '</button>';
+      });
+      html += '</div>';
+      html += '<div class="feedback-box"><div class="feedback-label">Explicación</div><div class="feedback-text"></div></div>';
+      html += '</div>';
+    });
+
+    if (sI < sectionNames.length - 1) {
+      html += '<div class="quiz-divider"></div>';
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function showResults() {
+  var panel = document.getElementById('resultsPanel');
+  var answered = Object.keys(state.answers).length;
+  var correct = 0;
+  Object.keys(state.answers).forEach(function(k) {
+    if (state.answers[k].correct) correct++;
+  });
+  var pct = answered > 0 ? Math.round((correct / state.totalQuestions) * 100) : 0;
+
+  var emoji = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+  var msg = pct >= 80 ? '¡Excelente dominio del capítulo!' : pct >= 60 ? 'Buen trabajo, sigue practicando.' : 'Repasa el material y vuelve a intentarlo.';
+
+  var breakdownHtml = '';
+  var sectionNames = Object.keys(sections);
+  sectionNames.forEach(function(sName) {
+    var total = sections[sName].length;
+    var sc = 0;
+    sections[sName].forEach(function(qIdx) {
+      if (state.answers[qIdx] && state.answers[qIdx].correct) sc++;
+    });
+    var pctSec = total > 0 ? Math.round((sc / total) * 100) : 0;
+    var barClass = pctSec >= 75 ? 'good' : pctSec >= 50 ? '' : 'bad';
+    breakdownHtml += '<div class="breakdown-row">';
+    breakdownHtml += '<span class="breakdown-label">' + sName + '</span>';
+    breakdownHtml += '<div class="breakdown-bar-wrap"><div class="breakdown-bar-fill ' + barClass + '" style="width:' + pctSec + '%"></div></div>';
+    breakdownHtml += '<span class="breakdown-stat">' + sc + '/' + total + '</span>';
+    breakdownHtml += '</div>';
+  });
+
+  panel.innerHTML = '<div class="results-icon">' + emoji + '</div>' +
+    '<div class="results-title">' + msg + '</div>' +
+    '<div class="results-score">' + pct + '%</div>' +
+    '<div class="results-sub">' + correct + ' correctas de ' + state.totalQuestions + ' preguntas</div>' +
+    '<div class="section-breakdown">' + breakdownHtml + '</div>' +
+    '<button class="retry-btn" onclick="retryQuiz()">Reintentar quiz →</button>';
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('stickyNav').classList.remove('visible');
+}
+
+function retryQuiz() {
+  state.answers = {};
+  document.getElementById('resultsPanel').classList.remove('visible');
+  renderQuiz();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+updateProgress();
+</script>
+</body>
+</html>
