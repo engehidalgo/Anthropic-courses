@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Claude 101 — Capítulo 3: Expandiendo el alcance de Claude</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --near-black: #111111;
+    --dark: #1a1a1a;
+    --mid: #2a2a2a;
+    --border: #333;
+    --text: #e8e6e1;
+    --muted: #888;
+    --orange: #d4783a;
+    --orange-light: #e8934f;
+    --orange-glow: rgba(212,120,58,0.15);
+    --blue: #3a7bd4;
+    --blue-light: #5a9be8;
+    --green: #2d7a4f;
+    --green-light: #3da066;
+    --green-bg: rgba(45,122,79,0.12);
+    --red: #8b2424;
+    --red-light: #c43030;
+    --red-bg: rgba(139,36,36,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #081018 40%, #0f0f0f 70%, #0a0a0a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0 14px;
+    flex-wrap: wrap;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+  .asterisk { width: 32px; height: 32px; color: var(--orange); flex-shrink: 0; }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span { color: var(--orange); }
+
+  .header-meta { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+  .chapter-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .score-pill {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+
+  .score-pill.active {
+    color: var(--blue-light);
+    border-color: rgba(58,123,212,0.4);
+    background: rgba(58,123,212,0.1);
+  }
+
+  .progress-container {
+    background: var(--near-black);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 71px;
+    z-index: 99;
+  }
+
+  .progress-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue-light));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+    box-shadow: 0 0 8px rgba(90,155,232,0.5);
+  }
+
+  .progress-text {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .hero {
+    text-align: center;
+    padding: 48px 0 56px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(ellipse, rgba(58,123,212,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto 32px;
+    font-weight: 300;
+  }
+
+  .hero-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+
+  .hero-stat { text-align: center; }
+
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--orange);
+  }
+
+  .hero-stat-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 48px 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .section-info h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .section-info p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .question-card {
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .question-card.answered-correct {
+    border-color: var(--green);
+    background: linear-gradient(135deg, var(--near-black), rgba(45,122,79,0.05));
+  }
+
+  .question-card.answered-wrong {
+    border-color: var(--red);
+    background: linear-gradient(135deg, var(--near-black), rgba(139,36,36,0.05));
+  }
+
+  .question-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+
+  .question-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .question-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+
+  .question-section-tag {
+    font-size: 0.65rem;
+    color: var(--orange);
+    background: var(--orange-glow);
+    border: 1px solid rgba(212,120,58,0.2);
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .question-text { font-size: 0.97rem; color: var(--text); margin-bottom: 20px; line-height: 1.55; font-weight: 400; }
+
+  .options-grid { display: grid; gap: 8px; }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: rgba(212,120,58,0.4);
+    background: rgba(212,120,58,0.05);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .option-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .option-text { font-size: 0.9rem; color: var(--text); line-height: 1.45; padding-top: 2px; font-weight: 300; }
+
+  .option-btn.correct { border-color: var(--green-light); background: var(--green-bg); }
+  .option-btn.correct .option-badge { background: var(--green); border-color: var(--green-light); color: #fff; }
+
+  .option-btn.wrong { border-color: var(--red-light); background: var(--red-bg); }
+  .option-btn.wrong .option-badge { background: var(--red); border-color: var(--red-light); color: #fff; }
+
+  .option-btn.show-correct { border-color: var(--green); background: rgba(45,122,79,0.06); opacity: 0.7; }
+  .option-btn.show-correct .option-badge { background: var(--green); border-color: var(--green-light); color: #fff; }
+
+  .feedback-box {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 300;
+    display: none;
+    animation: fadeSlide 0.25s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback-box.correct-fb { display: block; background: var(--green-bg); border: 1px solid var(--green); color: #7dd4a0; }
+  .feedback-box.wrong-fb { display: block; background: var(--red-bg); border: 1px solid var(--red-light); color: #e08080; }
+
+  .feedback-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .feedback-box.correct-fb .feedback-label { color: var(--green-light); }
+  .feedback-box.wrong-fb .feedback-label { color: var(--red-light); }
+
+  .results-panel {
+    display: none;
+    background: var(--near-black);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-top: 48px;
+    text-align: center;
+    animation: fadeSlide 0.4s ease;
+  }
+
+  .results-panel.visible { display: block; }
+
+  .results-icon { font-size: 3rem; margin-bottom: 16px; }
+
+  .results-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .results-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 16px 0;
+    color: var(--orange);
+  }
+
+  .results-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
+
+  .section-breakdown { display: grid; gap: 12px; margin: 24px 0; text-align: left; }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .breakdown-label { flex: 1; font-size: 0.85rem; color: var(--text); font-weight: 400; }
+
+  .breakdown-stat { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+
+  .breakdown-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+  .breakdown-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+  .breakdown-bar-fill.good { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+  .breakdown-bar-fill.bad { background: linear-gradient(90deg, var(--red), var(--red-light)); }
+
+  .retry-btn {
+    margin-top: 24px;
+    padding: 14px 32px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .retry-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+  .retry-btn:active { transform: translateY(0); }
+
+  .quiz-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  .sticky-nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .sticky-nav.visible { opacity: 1; pointer-events: all; }
+
+  .sticky-nav-text { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  .sticky-nav-text strong { color: var(--text); font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  .see-results-btn {
+    padding: 10px 20px;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .see-results-btn:hover { background: var(--orange-light); }
+
+  @media (max-width: 600px) {
+    .main { padding: 24px 16px 100px; }
+    .question-card { padding: 20px; }
+    .header-inner { gap: 8px; }
+    .hero-stats { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class='header'>
+  <div class='header-inner'>
+    <div class='logo'>
+      <svg class='asterisk' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <line x1='50' y1='5' x2='50' y2='95' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='27.5' x2='95' y2='72.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+        <line x1='5' y1='72.5' x2='95' y2='27.5' stroke='currentColor' stroke-width='10' stroke-linecap='round'/>
+      </svg>
+      <span class='logo-text'>Claude <span>101</span></span>
+    </div>
+    <div class='header-meta'>
+      <span class='chapter-badge'>Cap. 3</span>
+      <span class='score-pill' id='scoreDisplay'>0 / 0</span>
+    </div>
+  </div>
+</header>
+
+<div class='progress-container'>
+  <div class='progress-inner'>
+    <div class='progress-bar-wrap'>
+      <div class='progress-bar-fill' id='progressBar'></div>
+    </div>
+    <span class='progress-text' id='progressText'>0 / 50</span>
+  </div>
+</div>
+
+<main class='main'>
+  <div class='hero'>
+    <div class='hero-eyebrow'>Anthropic Academy · Claude 101</div>
+    <h1 class='hero-title'>Expandiendo el alcance de Claude</h1>
+    <p class='hero-subtitle'>Pon a prueba lo que aprendiste sobre Connectors, Enterprise Search y Research mode — y cómo amplían las capacidades de Claude.</p>
+    <div class='hero-stats'>
+      <div class='hero-stat'><div class='hero-stat-num'>50</div><div class='hero-stat-label'>Preguntas</div></div>
+      <div class='hero-stat'><div class='hero-stat-num'>3</div><div class='hero-stat-label'>Secciones</div></div>
+      <div class='hero-stat'><div class='hero-stat-num'>~20</div><div class='hero-stat-label'>Minutos</div></div>
+    </div>
+  </div>
+
+  <div id='quizContainer'></div>
+  <div class='results-panel' id='resultsPanel'></div>
+</main>
+
+<div class='sticky-nav' id='stickyNav'>
+  <span class='sticky-nav-text'>Respondidas: <strong id='navAnswered'>0</strong> de <strong>50</strong></span>
+  <button class='see-results-btn' onclick='showResults()'>Ver resultados →</button>
+</div>
+
+<script>
+'use strict';
+
+var questions = [
+
+  // ==================== SECCIÓN 1: Connectors — Conexión con herramientas ====================
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál es la mejor descripción del rol de los connectors en Claude?',
+    options: [
+      'Son extensiones de pago que aumentan el límite de tokens de Claude',
+      'Transforman a Claude de asistente en colaborador informado al darle acceso a las mismas herramientas y datos que usas en tu trabajo diario',
+      'Son atajos de teclado para ejecutar comandos rápidos en Claude',
+      'Son plantillas predefinidas de prompts para casos de uso empresariales'
+    ],
+    correct: 1,
+    feedback: 'Los connectors transforman a Claude de un asistente en un colaborador informado. En lugar de empezar cada conversación desde cero, Claude puede trabajar directamente con tu información real — los mismos datos y herramientas que tú usas cada día.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Qué protocolo estandarizado impulsa el funcionamiento de los connectors?',
+    options: [
+      'REST API con OAuth 2.0',
+      'El Model Context Protocol (MCP)',
+      'WebSocket Protocol (WSP)',
+      'Claude Integration Standard (CIS)'
+    ],
+    correct: 1,
+    feedback: 'El Model Context Protocol (MCP) es el estándar abierto que impulsa los connectors. El material lo describe como "USB-C para IA": un estándar universal que permite a Claude conectarse con muchas aplicaciones diferentes a través de una interfaz consistente.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuáles son los dos tipos de connectors que existen?',
+    options: [
+      'Connectors gratuitos y connectors premium de pago',
+      'Web connectors (para servicios cloud) y desktop extensions (que corren localmente en tu computadora)',
+      'Connectors de lectura y connectors de escritura',
+      'Connectors oficiales de Anthropic y connectors de terceros'
+    ],
+    correct: 1,
+    feedback: 'Existen dos tipos: los web connectors, que enlazan Claude con servicios cloud como Google Drive, Notion, Slack o Asana; y las desktop extensions, que corren localmente en tu computadora a través de la app de escritorio Claude Desktop, dando acceso a archivos locales y aplicaciones nativas.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Dónde está disponible el directorio oficial de connectors recomendados por Anthropic?',
+    options: [
+      'anthropic.com/connectors',
+      'claude.ai/directory',
+      'marketplace.claude.ai',
+      'extensions.anthropic.com'
+    ],
+    correct: 1,
+    feedback: 'Anthropic mantiene un directorio de connectors recomendados en claude.ai/directory. También puedes acceder haciendo clic en el botón "+" en la parte inferior izquierda del chat y seleccionando "Connectors".'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Qué organización del directorio tienen las dos pestañas disponibles en claude.ai/directory?',
+    options: [
+      'Gratuitos y de pago',
+      'Web (servicios cloud) y Desktop extensions (herramientas locales)',
+      'Productividad y Entretenimiento',
+      'Oficiales y Comunitarios'
+    ],
+    correct: 1,
+    feedback: 'El directorio se organiza en dos pestañas: "Web", que incluye servicios cloud como Gmail, Notion, Slack, Asana, Linear, Stripe y muchos más; y "Desktop extensions", que son herramientas locales que corren en tu computadora a través de la app Claude Desktop.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál es el primer paso para configurar un web connector?',
+    options: [
+      'Descargar la app de escritorio Claude Desktop',
+      'Encontrar el connector en claude.ai/directory o haciendo clic en + > Connectors en cualquier chat',
+      'Pagar la suscripción Claude Team o Enterprise',
+      'Instalar un plugin en el navegador'
+    ],
+    correct: 1,
+    feedback: 'El primer paso es encontrar el connector navegando a claude.ai/directory o haciendo clic en el botón "+" en la parte inferior izquierda del chat y seleccionando Connectors. Luego haces clic en "Connect", te autentificas y otorgas los permisos necesarios.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: 'Después de hacer clic en "Connect" para un web connector, ¿qué ocurre a continuación?',
+    options: [
+      'Claude descarga automáticamente todos tus archivos al sistema',
+      'Eres redirigido a la página de login del servicio para autenticarte con tus credenciales existentes',
+      'Debes ingresar una API key manualmente en la configuración de Claude',
+      'El connector se activa sin necesidad de ninguna autenticación adicional'
+    ],
+    correct: 1,
+    feedback: 'Al hacer clic en "Connect", eres redirigido a la página de login del servicio. Inicias sesión con tus credenciales existentes (no creas credenciales nuevas), luego revisas y autorizas los permisos específicos que Claude está solicitando.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Qué requisito especial tienen las desktop extensions a diferencia de los web connectors?',
+    options: [
+      'Requieren una suscripción Enterprise mínima',
+      'Requieren la app de escritorio Claude Desktop, no la interfaz web',
+      'Solo funcionan en sistemas operativos Linux',
+      'Requieren la aprobación de un administrador de TI antes de instalarse'
+    ],
+    correct: 1,
+    feedback: 'Las desktop extensions requieren la app de escritorio Claude Desktop, no la interfaz web. Estas extensiones permiten que Claude interactúe con aplicaciones locales, el sistema de archivos y funciones nativas de macOS o Windows.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál de estas NO es un ejemplo de desktop extension mencionado en el material?',
+    options: [
+      'Acceso a archivos locales para leer y organizar documentos',
+      'Control del navegador para tareas web automatizadas',
+      'Integración con Salesforce CRM directamente en la nube',
+      'Integración con aplicaciones nativas como Figma para diseño'
+    ],
+    correct: 2,
+    feedback: 'Salesforce es un servicio cloud y un web connector, no una desktop extension. Las desktop extensions mencionadas en el material son: acceso a archivos locales, control del navegador para automatización web, e integración con aplicaciones nativas como Figma.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál es el primer paso para instalar una desktop extension?',
+    options: [
+      'Ir a claude.ai/directory desde el navegador web',
+      'Descargar e instalar la app de escritorio Claude Desktop',
+      'Activar el modo desarrollador en la configuración de Claude',
+      'Solicitar acceso al equipo de soporte de Anthropic'
+    ],
+    correct: 1,
+    feedback: 'El primer paso es descargar e instalar la app de escritorio Claude Desktop. Desde ahí: abres la app, navegas a Settings > Extensions, exploras las extensiones disponibles, haces clic en Install, y sigues los pasos de configuración específicos de esa extensión.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: 'Si tienes un connector de Asana conectado, ¿cuál de estos prompts sería más adecuado para usarlo?',
+    options: [
+      '"Explícame la diferencia entre Agile y Waterfall"',
+      '"¿Cuáles son mis tareas de mayor prioridad que vencen esta semana?"',
+      '"Genera un informe financiero del último trimestre"',
+      '"¿Qué es el método Kanban?"'
+    ],
+    correct: 1,
+    feedback: 'Con Asana conectado, puedes hacer preguntas sobre tus tareas reales: ver prioridades, crear nuevas tareas, o ver el estado de proyectos. Las otras opciones son preguntas conceptuales que no requieren acceso a datos de Asana ni a ningún connector.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál es un ejemplo de prompt efectivo para usar un connector de Gmail o Slack?',
+    options: [
+      '"Escribe un email formal de presentación genérico"',
+      '"Encuentra el hilo de email donde discutimos el contrato con el proveedor"',
+      '"¿Cuáles son las mejores prácticas para comunicación interna?"',
+      '"Define qué es un SLA y cómo se mide"'
+    ],
+    correct: 1,
+    feedback: 'Con Gmail o Slack conectados, puedes pedir a Claude que busque información real de tus comunicaciones. Buscar un hilo específico, redactar respuestas a mensajes reales, o resumir decisiones del equipo son casos de uso propios de connectors de comunicación.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Qué significa "scoped access" en el contexto de los connectors?',
+    options: [
+      'Claude tiene acceso ilimitado a todos los datos del servicio conectado',
+      'Los permisos son específicos a lo que el connector necesita, y pueden activarse o desactivarse individualmente',
+      'El acceso se limita solo a los últimos 30 días de datos',
+      'Solo el administrador puede definir los permisos de acceso del connector'
+    ],
+    correct: 1,
+    feedback: '"Scoped access" significa que los permisos son específicos a lo que el connector necesita para funcionar. Además, puedes activar o desactivar permisos individuales dentro del menú de cada aplicación, dándote control granular sobre qué puede ver Claude.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: 'Si conectas tu email de trabajo a Claude, ¿puede Claude acceder al inbox de tu CEO?',
+    options: [
+      'Sí, porque tiene acceso al servidor de email de la empresa',
+      'Sí, si el CEO es parte del mismo dominio corporativo',
+      'No, Claude solo puede acceder a los datos a los que tú tienes acceso',
+      'Solo puede acceder a emails donde ambos estéis en copia'
+    ],
+    correct: 2,
+    feedback: 'Claude solo puede acceder a los datos a los que tú tienes acceso. El material lo explica claramente: "Claude ve lo que tú ves". Conectar tu email de trabajo no le da a Claude acceso al inbox de tu CEO — solo al tuyo propio.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cómo puedes revocar el acceso de un connector que ya no deseas tener conectado?',
+    options: [
+      'No es posible revocar el acceso una vez que se ha autorizado',
+      'Solo puedes desconectarlo contactando al soporte de Anthropic',
+      'A través de la configuración de Claude o de la configuración de seguridad del servicio de terceros',
+      'Eliminando y creando una nueva cuenta de Claude'
+    ],
+    correct: 2,
+    feedback: 'Puedes desconectar un servicio en cualquier momento de dos formas: a través de la configuración de Claude, o a través de la configuración de seguridad del servicio de terceros. El acceso es completamente revocable cuando quieras.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Qué advertencia de seguridad da el material sobre instalar connectors personalizados?',
+    options: [
+      'Los connectors personalizados son seguros por defecto al estar certificados por Anthropic',
+      'Solo debes instalar connectors de fuentes confiables, ejerciendo el mismo cuidado que con cualquier software',
+      'Los connectors personalizados solo están permitidos en planes Enterprise',
+      'No se deben instalar connectors de fuera del directorio oficial bajo ninguna circunstancia'
+    ],
+    correct: 1,
+    feedback: 'El material advierte que puedes encontrar o construir connectors personalizados, pero que debes ejercer la misma precaución que con Skills: instalar solo connectors de fuentes confiables. No prohíbe los connectors personalizados, pero sí recomienda precaución.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: '¿Cuál de estas categorías de herramientas de negocio se menciona en el material como caso de uso de connectors?',
+    options: [
+      'Herramientas de edición de video como Premiere Pro',
+      'Plataformas de pagos como Stripe o PayPal',
+      'Sistemas de control de versiones como GitHub',
+      'Plataformas de streaming como Spotify'
+    ],
+    correct: 1,
+    feedback: 'El material menciona herramientas de negocio como Stripe y PayPal en la categoría "Business tools", con ejemplos de uso como ver tendencias de ingresos, estados de oportunidades en CRM, o listar transacciones recientes por encima de cierto monto.'
+  },
+  {
+    section: 'Connectors — Conexión con herramientas',
+    sectionIdx: 1,
+    text: 'Según el material, ¿qué tipos de tareas pueden automatizar los connectors que antes requerían copiar y pegar información?',
+    options: [
+      'Solo tareas de generación de imágenes y diseño gráfico',
+      'Flujos de trabajo donde se necesita combinar datos de múltiples fuentes conectadas, como buscar en documentos, emails y herramientas de gestión',
+      'Únicamente la creación de hojas de cálculo y presentaciones',
+      'Solo tareas de codificación y depuración de código'
+    ],
+    correct: 1,
+    feedback: 'El material propone como reflexión: "¿Qué tareas actualmente te requieren copiar y pegar información que los connectors podrían manejar automáticamente?" y "¿Hay flujos de trabajo donde combinar datos de múltiples fuentes conectadas te ahorraría tiempo significativo?"'
+  },
+
+  // ==================== SECCIÓN 2: Enterprise Search ====================
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Qué es Enterprise Search en Claude?',
+    options: [
+      'Una función de búsqueda avanzada en internet disponible para todos los usuarios',
+      'Una opción dedicada "Ask {Nombre de tu Org}" diseñada para encontrar y sintetizar conocimiento distribuido en las herramientas de la empresa',
+      'Un conector premium para buscar en bases de datos SQL corporativas',
+      'Un modelo de Claude entrenado con datos propios de la empresa del usuario'
+    ],
+    correct: 1,
+    feedback: 'Enterprise Search agrega una opción dedicada "Ask {Nombre de tu Org}" a la barra lateral. Está diseñada específicamente para encontrar y sintetizar conocimiento distribuido en las herramientas y fuentes de datos de tu empresa, como un Project preconfigurado para toda la organización.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿En qué planes de Claude está disponible Enterprise Search?',
+    options: [
+      'En todos los planes, incluyendo Free y Pro',
+      'Solo en el plan Enterprise',
+      'En los planes Team y Enterprise, y debe ser activado por un administrador del workspace',
+      'En Pro y Max únicamente'
+    ],
+    correct: 2,
+    feedback: 'Enterprise Search está disponible en los planes Team y Enterprise, y debe ser habilitado por un administrador (Owner) del workspace. El material indica explícitamente que si estás en un plan Free, Pro o Max, puedes saltarte esa lección.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cómo describe el material la relación entre Enterprise Search y los Projects?',
+    options: [
+      'Enterprise Search reemplaza completamente a los Projects en planes corporativos',
+      'Enterprise Search es como un Project preconfigurado para toda la organización — la base de conocimiento de la empresa ya está cargada',
+      'Enterprise Search y Projects son funciones completamente independientes sin relación',
+      'Enterprise Search es una versión simplificada de Projects para usuarios básicos'
+    ],
+    correct: 1,
+    feedback: 'El material lo describe así: "Piensa en Enterprise Search como un Project preconfigurado para toda tu organización — la base de conocimiento de tu empresa ya está cargada, así que puedes comenzar directamente a obtener respuestas contextuales."'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cuál es una diferencia clave entre un chat regular con connectors y Enterprise Search?',
+    options: [
+      'Enterprise Search no usa connectors, sino un modelo especial entrenado internamente',
+      'Enterprise Search está específicamente diseñado para recopilación de información, usando instrucciones personalizadas configuradas por el equipo de Anthropic',
+      'Los chats regulares tienen un límite de tokens mayor que Enterprise Search',
+      'Enterprise Search solo puede responder en inglés, sin importar el idioma configurado'
+    ],
+    correct: 1,
+    feedback: 'A diferencia de los chats regulares con connectors, Enterprise Search está específicamente diseñado para recopilación de información y usa instrucciones personalizadas configuradas por el equipo de Anthropic. No es solo Claude con connectors activados.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cuál de estos es un ejemplo adecuado de pregunta para Enterprise Search?',
+    options: [
+      '"¿Cuál es la diferencia entre machine learning y deep learning?"',
+      '"¿Qué pasó ayer mientras estuve fuera de la oficina?"',
+      '"Escríbeme un poema sobre productividad"',
+      '"¿Cuál es la capital de Francia?"'
+    ],
+    correct: 1,
+    feedback: 'Enterprise Search es ideal para preguntas que requieren sintetizar información de múltiples fuentes organizacionales. "¿Qué pasó ayer?" es un caso perfecto: Claude puede buscar en Slack, emails, documentos y reuniones para darte un resumen consolidado.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: 'Un nuevo empleado quiere saber cómo funciona el sistema de autenticación de la empresa. ¿Qué herramienta es más adecuada?',
+    options: [
+      'Web search para buscar documentación técnica pública',
+      'Enterprise Search, para encontrar documentación interna y saber con quién hablar sobre el sistema',
+      'Research mode, para hacer una investigación exhaustiva de sistemas de autenticación en general',
+      'Un connector de GitHub para revisar el código fuente directamente'
+    ],
+    correct: 1,
+    feedback: 'Enterprise Search es perfecta para onboarding. El material menciona explícitamente el ejemplo "¿Cómo funciona nuestro sistema de autenticación?" como caso de uso de Enterprise Search para nuevos empleados — la respuesta está en documentación interna, no en internet.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cuál es el rol de un Owner en la configuración inicial de Enterprise Search?',
+    options: [
+      'Los Owners solo necesitan aprobar el acceso; la configuración técnica la hace Anthropic directamente',
+      'El Owner debe completar la configuración inicial: conectar herramientas de la organización, personalizar el nombre del proyecto y añadir descripción',
+      'Los Owners no tienen rol en Enterprise Search; es autoconfigurado',
+      'El Owner solo puede habilitarlo o deshabilitarlo, sin opciones de personalización'
+    ],
+    correct: 1,
+    feedback: 'El Owner debe completar la configuración inicial: hacer clic en "Ask Your Org", seleccionar "Set up for your org", conectar las herramientas de la organización (Documents, Chat y opcionalmente Email), personalizar el nombre del proyecto y añadir una descripción.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: 'Según el material, ¿qué herramientas son obligatorias al configurar Enterprise Search para una organización?',
+    options: [
+      'Solo Email es obligatorio; el resto es opcional',
+      'Un connector para Documentos (como Google Drive o SharePoint) y uno para Chat (como Slack o Microsoft Teams); Email es recomendado pero opcional',
+      'Todas las herramientas son igualmente obligatorias: Documentos, Chat y Email',
+      'Solo Slack es obligatorio como fuente principal de comunicación'
+    ],
+    correct: 1,
+    feedback: 'Al configurar Enterprise Search, se requiere elegir un connector para Documentos (Google Drive o SharePoint) y uno para Chat (Slack o Microsoft Teams). Email es recomendado pero opcional. Puedes añadir más herramientas con "+ Add more".'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Qué sucede una vez que el Owner completa la configuración de Enterprise Search?',
+    options: [
+      'Solo el Owner puede usarlo; los demás miembros deben solicitar acceso individual',
+      'El proyecto queda disponible para todos los miembros de la organización, quienes deben autenticarse con cada servicio que quieran buscar',
+      'Queda en modo prueba por 30 días antes de activarse oficialmente',
+      'Cada miembro debe replicar todo el proceso de configuración por su cuenta'
+    ],
+    correct: 1,
+    feedback: 'Una vez que el Owner completa la configuración, el proyecto queda disponible para todos los miembros de la organización. Los usuarios verán "Ask {Nombre Org}" en su barra lateral y solo necesitarán autenticarse con cada servicio (Slack, Google, Microsoft 365, etc.).'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Qué impacto tiene añadir más connectors en Enterprise Search?',
+    options: [
+      'Añadir connectors reduce la velocidad de respuesta significativamente',
+      'Más connectors = resultados de búsqueda más completos y comprehensivos',
+      'Solo los primeros 3 connectors afectan la calidad; los adicionales son decorativos',
+      'Más connectors aumenta el costo por consulta de Enterprise Search'
+    ],
+    correct: 1,
+    feedback: 'El material indica: "Cuantos más connectors habilites, más comprehensivos serán tus resultados de búsqueda". Puedes añadir connectors adicionales en cualquier momento haciendo clic en "Connect" en la sección de instrucciones del proyecto.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Es seguro usar Enterprise Search con datos sensibles de la organización?',
+    options: [
+      'No, los datos de la empresa se almacenan en los servidores de Anthropic para entrenamiento',
+      'Sí, Enterprise Search solo muestra lo que tú ya tienes permiso de ver, y tus conversaciones son privadas y los datos conectados no se indexan ni almacenan por separado',
+      'Solo es seguro para datos públicos de la empresa, no para información confidencial',
+      'La seguridad depende del plan de suscripción; solo Enterprise tiene protección de datos'
+    ],
+    correct: 1,
+    feedback: 'El material responde esta pregunta directamente: "En resumen, sí". Enterprise Search solo muestra lo que tú ya tienes permiso de acceder en las herramientas originales. Además, tus conversaciones son privadas y los datos conectados no se indexan ni almacenan por separado.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cuál es el propósito principal de las preguntas de "actualización" en Enterprise Search?',
+    options: [
+      'Monitorear el rendimiento financiero de la empresa en tiempo real',
+      'Sintetizar rápidamente qué ocurrió en la organización durante una ausencia o período de tiempo',
+      'Generar reportes automáticos para enviar a directivos',
+      'Reemplazar las reuniones diarias de standup del equipo'
+    ],
+    correct: 1,
+    feedback: 'Las preguntas de actualización como "¿Qué pasó ayer mientras estuve fuera?" o "Resume las actualizaciones clave del negocio de la última semana" son uno de los casos de uso principales de Enterprise Search: ponerse al día rápidamente después de una ausencia.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: 'Un empleado necesita saber cuál es el proceso para solicitar vacaciones. ¿Cómo encaja Enterprise Search aquí?',
+    options: [
+      'No es útil; estas preguntas son demasiado simples para Enterprise Search',
+      'Es ideal: puede buscar en documentos de políticas, Slack y emails para encontrar el proceso oficial',
+      'Solo funciona si el empleado ya sabe en qué documento está la información',
+      'Enterprise Search no puede responder preguntas sobre políticas de RRHH por privacidad'
+    ],
+    correct: 1,
+    feedback: 'Preguntas de políticas y procesos como "¿Cuál es el proceso para solicitar vacaciones?" son casos de uso ideales de Enterprise Search. Puede buscar en documentos de HR, canales de Slack relevantes y emails para encontrar y sintetizar la información.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Enterprise Search puede citar las fuentes de donde obtiene la información?',
+    options: [
+      'No, para proteger la confidencialidad de las fuentes internas',
+      'Solo cita fuentes externas, no documentos internos',
+      'Sí, siempre cita sus fuentes para que puedas verificar y obtener más contexto',
+      'Solo cita fuentes si el usuario lo solicita explícitamente en el prompt'
+    ],
+    correct: 2,
+    feedback: 'El material indica que Enterprise Search "siempre cita sus fuentes para que puedas obtener el contexto completo". Esto es importante para poder verificar la información y acceder a los documentos o conversaciones originales cuando sea necesario.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Cuál de estos NO es un caso de uso de Enterprise Search mencionado en el material?',
+    options: [
+      'Tracking de rendimiento y proyectos',
+      'Preguntas de onboarding para nuevos empleados',
+      'Análisis de sentimiento de clientes en redes sociales públicas',
+      'Investigación y análisis de información interna'
+    ],
+    correct: 2,
+    feedback: 'El análisis de sentimiento de clientes en redes sociales públicas es un caso de web search o Research mode, no de Enterprise Search. Enterprise Search está orientado al conocimiento interno de la organización: documentos, chats, emails y herramientas internas.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: '¿Qué parte del flujo de usuario muestra que Enterprise Search está correctamente configurado para un nuevo miembro del equipo?',
+    options: [
+      'Aparece una notificación de email de Anthropic confirmando el acceso',
+      'Verá "Ask {Nombre Org}" destacado como proyecto en su barra lateral y seguirá el flujo de onboarding guiado para conectar los servicios recomendados',
+      'Claude le preguntará automáticamente si quiere activar Enterprise Search la primera vez que abra un chat',
+      'Recibirá un código de acceso único del administrador para ingresar'
+    ],
+    correct: 1,
+    feedback: 'Cuando Enterprise Search está configurado, los usuarios verán el proyecto "Ask {Nombre Org}" destacado en su barra lateral. Desde ahí, siguen un flujo de onboarding guiado para conectarse a los servicios recomendados y autenticarse con cada uno.'
+  },
+  {
+    section: 'Enterprise Search — Búsqueda Organizacional',
+    sectionIdx: 2,
+    text: 'Alguien quiere saber "¿Cuáles son los principales motivos por los que los clientes eligen a nuestros competidores?". ¿Qué herramienta es más adecuada?',
+    options: [
+      'Web search, para buscar reseñas públicas y artículos de prensa',
+      'Enterprise Search, para analizar conversaciones internas, documentos de ventas y feedback de clientes almacenado en las herramientas de la empresa',
+      'Research mode, para hacer una investigación exhaustiva en múltiples fuentes externas',
+      'Un connector específico de CRM para acceder directamente a los datos de ventas'
+    ],
+    correct: 1,
+    feedback: 'Esta pregunta menciona explícitamente en el material como caso de uso de Enterprise Search: "¿Cuáles son los principales motivos por los que los clientes citan para elegir a los competidores?" La respuesta está en el conocimiento interno: conversaciones de ventas, feedback de clientes, documentos de análisis competitivo almacenados en las herramientas de la empresa.'
+  },
+
+  // ==================== SECCIÓN 3: Research Mode — Investigación en profundidad ====================
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cómo transforma Research el comportamiento de Claude en comparación con una búsqueda web normal?',
+    options: [
+      'Research solo aumenta la velocidad de las búsquedas web existentes',
+      'Research hace que Claude opere agénticamente — realizando múltiples búsquedas que se construyen una sobre otra, determinando qué investigar a continuación de forma autónoma',
+      'Research limita la búsqueda a fuentes académicas verificadas únicamente',
+      'Research desactiva la capacidad de Claude de buscar en internet y usa solo su conocimiento interno'
+    ],
+    correct: 1,
+    feedback: 'Research transforma a Claude en un investigador sistemático. Opera agénticamente: realiza múltiples búsquedas que se construyen una sobre otra, determina autónomamente qué investigar a continuación según lo que ya encontró, y explora diferentes ángulos sin que el usuario dirija cada paso.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuánto tiempo tarda típicamente una investigación con Research mode?',
+    options: [
+      'Menos de 30 segundos, igual que una búsqueda web normal',
+      'Entre 5 y 15 minutos para la mayoría de reportes, hasta 45 minutos para investigaciones más complejas',
+      'Exactamente 1 hora por defecto, independientemente de la complejidad',
+      'Entre 2 y 4 horas para garantizar exhaustividad'
+    ],
+    correct: 1,
+    feedback: 'Research entrega respuestas comprehensivas en minutos: la mayoría de reportes completan en 5 a 15 minutos, aunque investigaciones más complejas pueden tardar hasta 45 minutos. Esto es trabajo que normalmente requeriría horas de investigación manual.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Qué función avanzada de Claude se activa automáticamente cuando usas Research mode?',
+    options: [
+      'Artifacts, para generar documentos descargables automáticamente',
+      'Extended thinking, que permite planificar el enfoque y dividir solicitudes complejas en partes manejables',
+      'Voice mode, para dictar los resultados en audio',
+      'Code execution, para analizar datos con código Python'
+    ],
+    correct: 1,
+    feedback: 'Extended thinking se activa automáticamente con Research mode. Esta combinación poderosa permite que Claude planifique su enfoque de forma reflexiva Y recopile información exhaustiva, dividiendo solicitudes complejas en partes manejables antes de ejecutarlas.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Research incluye citas en sus reportes?',
+    options: [
+      'No, Research no cita fuentes para mantener el texto fluido y sin interrupciones',
+      'Solo cita fuentes cuando el usuario lo solicita explícitamente',
+      'Sí, cada afirmación en los reportes de Research enlaza a su fuente para verificación fácil',
+      'Solo cita fuentes externas, no integraciones conectadas como Google Drive'
+    ],
+    correct: 2,
+    feedback: 'Las citas son una característica fundamental de Research. Cada afirmación en los reportes enlaza a su fuente, lo que facilita verificar la información y profundizar cuando es necesario. El material destaca esto como una característica clave de confiabilidad.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuál de estas situaciones es ideal para usar Research mode?',
+    options: [
+      'Necesitas saber el precio actual de una acción en bolsa',
+      'Quieres un análisis comprehensivo del mercado de vehículos eléctricos identificando actores clave, tendencias tecnológicas y desafíos de la cadena de suministro',
+      'Necesitas depurar un error en tu código de Python',
+      'Quieres que Claude explique un concepto matemático paso a paso'
+    ],
+    correct: 1,
+    feedback: 'Research es ideal para análisis comprensivos que requieren múltiples fuentes. Un análisis de mercado de EVs con actores clave, tendencias tecnológicas y cadena de suministro es exactamente el tipo de investigación que normalmente tomaría horas de trabajo manual.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuándo deberías usar web search simple en lugar de Research mode?',
+    options: [
+      'Siempre que necesites información de internet, ya que web search es más rápido',
+      'Cuando necesitas un hecho específico rápido como el precio actual de una acción o la dirección de una empresa',
+      'Cuando el tema es complejo y requiere múltiples fuentes',
+      'Research nunca debe usarse; web search siempre es suficiente'
+    ],
+    correct: 1,
+    feedback: 'El material recomienda usar web search simple cuando necesitas un hecho específico rápido (como el precio de una acción o la dirección de una empresa), cuando la respuesta requiere solo una o dos fuentes, o cuando la velocidad importa más que la exhaustividad.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuándo es más apropiado usar extended thinking en lugar de Research mode?',
+    options: [
+      'Cuando necesitas información muy reciente publicada en las últimas horas',
+      'Cuando necesitas razonamiento profundo sobre un problema complejo que NO requiere información externa, como problemas matemáticos, depuración de código o análisis lógico',
+      'Cuando tienes más de 10 fuentes que analizar simultáneamente',
+      'Extended thinking y Research mode son equivalentes; pueden usarse indistintamente'
+    ],
+    correct: 1,
+    feedback: 'Extended thinking es más apropiado cuando necesitas razonamiento profundo en un problema complejo que no requiere información externa. Es ideal para matemáticas, depuración de código o análisis lógico — situaciones donde la respuesta viene de razonar el problema, no de buscar información.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuál es la diferencia principal entre usar Research mode y Enterprise Search para una pregunta interna de la empresa?',
+    options: [
+      'No hay diferencia; ambas herramientas son equivalentes para información interna',
+      'Enterprise Search es para conocimiento interno de la organización; Research mode es para información del web público y fuentes externas',
+      'Research mode es más rápido que Enterprise Search para preguntas internas',
+      'Enterprise Search requiere más configuración inicial que Research mode'
+    ],
+    correct: 1,
+    feedback: 'La distinción es clara: usa Enterprise Search cuando necesitas respuestas del conocimiento interno de tu organización (documentos, Slack, emails, decisiones pasadas). Usa Research mode cuando la investigación requiere fuentes públicas de internet o una combinación con integraciones como Google Workspace.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cómo se activa Research mode en la interfaz de Claude?',
+    options: [
+      'Escribiendo "/research" al inicio de cualquier prompt',
+      'Desde Settings > Advanced > Research mode',
+      'Haciendo clic en el botón "+" en la parte inferior izquierda del chat y seleccionando Research',
+      'Research se activa automáticamente para preguntas largas sin necesidad de configuración'
+    ],
+    correct: 2,
+    feedback: 'Para activar Research: haz clic en el botón "+" en la parte inferior izquierda de la interfaz de chat, selecciona Research en el menú (aparecerá resaltado cuando esté activo), luego escribe tu prompt y envíalo. Importante: web search también debe estar habilitado para que Research funcione.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Qué requisito previo es indispensable para que Research mode funcione correctamente?',
+    options: [
+      'Tener al menos un connector de Google Drive conectado',
+      'Tener web search habilitado, ya que Research lo necesita para funcionar',
+      'Tener una suscripción Claude Enterprise activa',
+      'Tener extended thinking manualmente activado antes de habilitar Research'
+    ],
+    correct: 1,
+    feedback: 'Web search debe estar habilitado para que Research funcione. Si no lo has activado, puedes hacerlo desde el mismo menú "+". Sin web search, Research no puede realizar las búsquedas que lo hacen poderoso. Extended thinking se activa automáticamente cuando Research está habilitado.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: 'Una empresa quiere planificar un evento offsite para su equipo. ¿Por qué Research mode sería útil aquí?',
+    options: [
+      'Porque Research puede reservar automáticamente los venues sin intervención humana',
+      'Porque puede comparar opciones de venues con múltiples criterios (ubicación, instalaciones, catering, precios) investigando desde múltiples fuentes simultáneamente',
+      'Porque Research mode tiene acceso a precios exclusivos no disponibles al público',
+      'Porque es más barato que contratar a un organizador de eventos'
+    ],
+    correct: 1,
+    feedback: 'El material usa exactamente este ejemplo: planificar un offsite de equipo. Research puede investigar opciones de venues comparando criterios como ubicación y accesibilidad, espacios de reunión y comodidades, opciones de catering y consideraciones de precio — todo desde múltiples fuentes a la vez.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuál de los siguientes es un consejo para escribir prompts efectivos en Research mode?',
+    options: [
+      'Ser lo más vago posible para que Claude tenga libertad creativa en la investigación',
+      'Especificar los objetivos, la estructura deseada del reporte y las restricciones relevantes (presupuesto, plazos, geografía)',
+      'Mantener el prompt bajo 50 palabras para no limitar a Claude',
+      'Evitar mencionar el formato deseado para que Claude elija el más apropiado'
+    ],
+    correct: 1,
+    feedback: 'Para prompts efectivos en Research, el material recomienda: ser específico sobre los objetivos, especificar las secciones o estructura deseada (Claude organizará sus hallazgos en torno a ella), e incluir restricciones relevantes como rangos de presupuesto, plazos y requisitos geográficos.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: 'Compare estos dos prompts para Research mode. ¿Cuál es más efectivo según el material?',
+    options: [
+      '"Cuéntame sobre el mercado de EVs"',
+      '"Analiza el mercado de baterías para vehículos eléctricos — identifica los actores clave, tendencias tecnológicas y desafíos de la cadena de suministro que podrían afectar decisiones de inversión"',
+      'Ambos son igualmente efectivos; la especificidad no importa en Research mode',
+      '"¿Qué debería saber sobre EVs?" es más efectivo por su apertura'
+    ],
+    correct: 1,
+    feedback: 'El material usa exactamente este ejemplo. El segundo prompt es más efectivo porque: identifica el subsector específico (baterías), especifica los ángulos de investigación (actores, tendencias, cadena de suministro) y define el propósito (decisiones de inversión). Esto da a Claude un marco claro para su investigación.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cómo potencia Research mode el uso de integraciones como Google Workspace?',
+    options: [
+      'Las integraciones solo funcionan en modo estándar; Research las desactiva para mayor velocidad',
+      'Claude puede combinar contexto de tus emails, calendario y documentos con investigación web para respuestas más relevantes y personalizadas',
+      'Google Workspace es la única integración compatible con Research mode',
+      'Las integraciones en Research mode solo pueden leerse, no escribirse'
+    ],
+    correct: 1,
+    feedback: 'Con integraciones conectadas como Google Workspace, Research se vuelve aún más poderoso. Claude puede combinar contexto de tus emails, calendario y documentos junto con la investigación web, generando reportes más relevantes para tu situación específica.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Es posible usar Research mode para investigar solo fuentes internas sin acceder a internet?',
+    options: [
+      'No, Research siempre requiere acceso a internet para funcionar',
+      'Sí, puedes desactivar el web search para hacer investigación interna exclusivamente con tus herramientas conectadas',
+      'Solo es posible en planes Enterprise con configuración especial del administrador',
+      'Research mode y web search son la misma función y no pueden separarse'
+    ],
+    correct: 1,
+    feedback: 'Sí, es posible. El material incluye un "Pro tip": puedes desactivar web search para hacer investigación solo interna con tus herramientas conectadas. Esto es ideal para preguntas como "¿Qué discutió nuestro equipo sobre el lanzamiento del Q3 en Slack y Google Docs?"'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuál es el cuarto paso del proceso de Research según el material?',
+    options: [
+      'Claude envía el reporte al email del usuario automáticamente',
+      'Claude proporciona citas para cada afirmación del reporte, vinculándolas a la fuente original',
+      'Claude solicita retroalimentación del usuario sobre la profundidad de la investigación',
+      'Claude genera un resumen ejecutivo de máximo 200 palabras'
+    ],
+    correct: 1,
+    feedback: 'El proceso de Research tiene 4 pasos: 1) Claude planifica su enfoque (extended thinking se activa). 2) Claude realiza múltiples búsquedas. 3) Claude sintetiza los hallazgos en un reporte comprehensivo. 4) Claude proporciona citas para cada afirmación, facilitando la verificación.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Qué deben hacer los usuarios mientras Research está trabajando?',
+    options: [
+      'Responder preguntas de seguimiento que Claude hace mientras investiga',
+      'Esperar con paciencia — Research trabaja en segundo plano y muestra indicadores de progreso mientras busca y analiza',
+      'Aprobar manualmente cada búsqueda que Claude quiere realizar',
+      'Estar disponibles para proporcionar contexto adicional si Claude se queda sin información'
+    ],
+    correct: 1,
+    feedback: 'Research trabaja en segundo plano de forma autónoma. El usuario solo necesita esperar — verá indicadores de progreso mientras Claude busca y analiza. No hay intervención manual requerida en el proceso de investigación. Por eso es importante invertir tiempo en el prompt inicial.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Qué hace Research en su primer paso según el material?',
+    options: [
+      'Realiza inmediatamente 10 búsquedas en paralelo para maximizar la velocidad',
+      'Activa extended thinking para planificar el enfoque, identificar qué información necesita e investigar diferentes ángulos de la pregunta',
+      'Consulta primero las integraciones conectadas antes de acceder a internet',
+      'Genera un borrador de estructura del reporte para que el usuario apruebe'
+    ],
+    correct: 1,
+    feedback: 'En el primer paso, cuando Research está habilitado, extended thinking se activa automáticamente. Esto permite que Claude descomponga la solicitud, identifique qué información necesita y planifique cómo investigar diferentes ángulos de la pregunta antes de ejecutar ninguna búsqueda.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: 'Quieres preparar un briefing sobre todas las empresas con las que te reunirás la próxima semana. ¿Cómo combinarías herramientas de Claude para esto?',
+    options: [
+      'Solo usar web search para buscar cada empresa manualmente',
+      'Usar Research con Google Calendar conectado: "Revisa mis compromisos del calendario de la próxima semana e investiga cada empresa con la que me reuniré"',
+      'Usar Enterprise Search para buscar cada empresa en documentos internos',
+      'Solo usar extended thinking para razonar sobre lo que ya sabes de esas empresas'
+    ],
+    correct: 1,
+    feedback: 'El material usa exactamente este ejemplo como caso de uso avanzado de Research con integraciones: "Revisa mis compromisos del calendario de la próxima semana e investiga cada empresa con la que me vaya a reunir." Combina datos de tu calendario con investigación web para un briefing relevante y actualizado.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuándo sugiere el material pedir a Claude que ayude a refinar tu prompt de Research?',
+    options: [
+      'Siempre, antes de cada sesión de Research sin excepción',
+      'Cuando no estás seguro de cómo formular tu pregunta de investigación, puedes pedirle a Claude que te ayude a escribir un mejor prompt antes de activar Research',
+      'Solo cuando el prompt tiene menos de 20 palabras',
+      'Nunca; Claude no puede ayudar con prompts de Research'
+    ],
+    correct: 1,
+    feedback: 'El material sugiere: si no estás seguro de cómo enmarcar tu pregunta, puedes pedirle a Claude que te ayude a escribir un mejor prompt de Research antes de habilitar la función. Es un paso preparatorio opcional pero valioso para temas complejos o poco definidos.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Qué tipo de prompt de Research menciona el material para estrategia de precios interna vs. competidores?',
+    options: [
+      '"¿Cuánto cobran nuestros competidores?"',
+      '"Encuentra todos los documentos internos sobre nuestra estrategia de precios y compara con cómo los competidores se están posicionando"',
+      '"Genera un análisis SWOT de nuestros precios"',
+      '"¿Cuál es el precio óptimo para nuestro producto?"'
+    ],
+    correct: 1,
+    feedback: 'El material cita este ejemplo específico como caso de uso de Research con integraciones: "Encuentra todos los documentos internos sobre nuestra estrategia de precios y compara con cómo los competidores se están posicionando". Combina fuentes internas (Google Drive) con investigación web sobre competidores.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: 'Una tarea requeriría más de 20 llamadas a herramientas de investigación. ¿Qué sugiere el material?',
+    options: [
+      'Dividirla en 4 sesiones de Research separadas de 5 llamadas cada una',
+      'Usar extended thinking en lugar de Research para tareas ultra-complejas',
+      'Sugerir al usuario que considere usar la función Research (deep dive) si la tarea claramente necesita más de 20 llamadas',
+      'Desactivar temporalmente las integraciones para reducir la complejidad'
+    ],
+    correct: 2,
+    feedback: 'El material indica: "Para tareas que claramente necesitarán 20 o más llamadas, sugiere la función Research." Esto implica que hay un límite práctico donde escalar a la capacidad completa de Research (el deep dive) es más apropiado que intentar dividir la tarea artificialmente.'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: '¿Cuál es el resumen más preciso de cuándo usar cada herramienta: web search, extended thinking, Enterprise Search y Research?',
+    options: [
+      'Todas son equivalentes; usar la que se prefiera en cada momento',
+      'Web search: hechos rápidos. Extended thinking: razonamiento profundo sin fuentes externas. Enterprise Search: conocimiento interno de la organización. Research: investigación exhaustiva multi-fuente del web y/o integraciones.',
+      'Research siempre es mejor que web search; Enterprise Search siempre es mejor que Research para datos internos',
+      'Extended thinking y Research son lo mismo con diferentes nombres'
+    ],
+    correct: 1,
+    feedback: 'El material establece guías claras: Web search para hechos específicos rápidos. Extended thinking para razonamiento profundo sin necesidad de fuentes externas (matemáticas, código, análisis lógico). Enterprise Search para conocimiento interno organizacional. Research para investigación exhaustiva de múltiples fuentes (web y/o integraciones).'
+  },
+  {
+    section: 'Research Mode — Investigación en Profundidad',
+    sectionIdx: 3,
+    text: 'Un gerente quiere saber: "¿Qué discutimos sobre el roadmap del producto en Q4 en Slack y Docs, y cómo se compara con las mejores prácticas de la industria?" ¿Qué enfoque recomienda el material?',
+    options: [
+      'Usar Enterprise Search para la parte de Slack/Docs y luego web search para mejores prácticas en búsquedas separadas',
+      'Usar Research mode con web search habilitado e integraciones conectadas para combinar el conocimiento interno con investigación web en una sola consulta',
+      'Usar solo extended thinking para razonar basándose en el conocimiento general de Claude',
+      'Dividir en dos prompts: uno para Research y otro para Enterprise Search, luego combinar manualmente'
+    ],
+    correct: 1,
+    feedback: 'Esta es exactamente la pregunta donde Research con integraciones brilla. Puedes combinar fuentes internas (Slack, Google Docs) con investigación web sobre mejores prácticas de la industria en una sola consulta: "Resume lo discutido en Project X en emails y Slack, luego investiga mejores prácticas de la industria para iniciativas similares".'
+  }
+
+];
+
+// ==================== STATE ====================
+var totalQ = questions.length;
+var answered = new Array(totalQ).fill(false);
+var correctArr = new Array(totalQ).fill(false);
+var scoreCount = 0;
+
+// section map
+var sections = [];
+questions.forEach(function(q, i) {
+  var found = false;
+  for (var s = 0; s < sections.length; s++) {
+    if (sections[s].name === q.section) {
+      sections[s].indices.push(i);
+      found = true; break;
+    }
+  }
+  if (!found) sections.push({ name: q.section, idx: q.sectionIdx, indices: [i] });
+});
+
+// ==================== RENDER ====================
+function buildQuiz() {
+  var container = document.getElementById('quizContainer');
+  var html = '';
+  var currentSection = null;
+
+  questions.forEach(function(q, i) {
+    if (q.section !== currentSection) {
+      if (currentSection !== null) html += '<div class="quiz-divider"></div>';
+      currentSection = q.section;
+      var secData = sections.find(function(s) { return s.name === q.section; });
+      html += '<div class="section-header">';
+      html += '<div class="section-number">' + (secData ? secData.idx : '') + '</div>';
+      html += '<div class="section-info"><h2>' + q.section + '</h2>';
+      var cnt = sections.find(function(s) { return s.name === q.section; });
+      html += '<p>' + (cnt ? cnt.indices.length : '') + ' preguntas</p></div>';
+      html += '</div>';
+    }
+
+    var letters = ['A','B','C','D'];
+    html += '<div class="question-card" id="card' + i + '">';
+    html += '<div class="question-meta">';
+    html += '<span class="question-num">Pregunta ' + (i + 1) + '</span>';
+    html += '<div class="question-dot"></div>';
+    html += '<span class="question-section-tag">' + q.section + '</span>';
+    html += '</div>';
+    html += '<div class="question-text">' + q.text + '</div>';
+    html += '<div class="options-grid" id="opts' + i + '">';
+    q.options.forEach(function(opt, j) {
+      html += '<button class="option-btn" id="opt' + i + '_' + j + '" onclick="choose(' + i + ',' + j + ')">';
+      html += '<div class="option-badge">' + letters[j] + '</div>';
+      html += '<div class="option-text">' + opt + '</div>';
+      html += '</button>';
+    });
+    html += '</div>';
+    html += '<div class="feedback-box" id="fb' + i + '">';
+    html += '<div class="feedback-label" id="fblabel' + i + '"></div>';
+    html += '<div id="fbtext' + i + '"></div>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function choose(qIdx, optIdx) {
+  if (answered[qIdx]) return;
+  answered[qIdx] = true;
+
+  var q = questions[qIdx];
+  var isCorrect = (optIdx === q.correct);
+  if (isCorrect) { correctArr[qIdx] = true; scoreCount++; }
+
+  // style options
+  for (var j = 0; j < q.options.length; j++) {
+    var btn = document.getElementById('opt' + qIdx + '_' + j);
+    btn.disabled = true;
+    if (j === optIdx && isCorrect) btn.classList.add('correct');
+    else if (j === optIdx && !isCorrect) btn.classList.add('wrong');
+    else if (j === q.correct && !isCorrect) btn.classList.add('show-correct');
+  }
+
+  // card border
+  var card = document.getElementById('card' + qIdx);
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  // feedback
+  var fb = document.getElementById('fb' + qIdx);
+  var fblabel = document.getElementById('fblabel' + qIdx);
+  var fbtext = document.getElementById('fbtext' + qIdx);
+  fblabel.textContent = isCorrect ? '✓ Correcto' : '✗ Incorrecto';
+  fbtext.textContent = q.feedback;
+  fb.classList.add(isCorrect ? 'correct-fb' : 'wrong-fb');
+
+  updateProgress();
+}
+
+function updateProgress() {
+  var total = answered.filter(Boolean).length;
+  var pct = Math.round((total / totalQ) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = total + ' / ' + totalQ;
+  document.getElementById('scoreDisplay').textContent = scoreCount + ' / ' + total;
+  if (total > 0) document.getElementById('scoreDisplay').classList.add('active');
+
+  document.getElementById('navAnswered').textContent = total;
+
+  var nav = document.getElementById('stickyNav');
+  if (total >= 3) nav.classList.add('visible');
+  else nav.classList.remove('visible');
+}
+
+function showResults() {
+  var panel = document.getElementById('resultsPanel');
+  var pct = Math.round((scoreCount / totalQ) * 100);
+
+  var icon = pct >= 80 ? '🎯' : pct >= 60 ? '📚' : '🔄';
+  var title = pct >= 80 ? '¡Excelente trabajo!' : pct >= 60 ? '¡Buen progreso!' : 'Sigue practicando';
+  var sub = 'Obtuviste ' + scoreCount + ' de ' + totalQ + ' preguntas correctas (' + pct + '%)';
+
+  var breakdownHtml = '<div class="section-breakdown">';
+  sections.forEach(function(sec) {
+    var correct = sec.indices.filter(function(i) { return correctArr[i]; }).length;
+    var total = sec.indices.length;
+    var pctSec = total > 0 ? Math.round((correct / total) * 100) : 0;
+    var barClass = pctSec >= 80 ? 'good' : pctSec >= 50 ? '' : 'bad';
+    breakdownHtml += '<div class="breakdown-row">';
+    breakdownHtml += '<div class="breakdown-label">' + sec.name + '</div>';
+    breakdownHtml += '<div class="breakdown-stat">' + correct + '/' + total + '</div>';
+    breakdownHtml += '<div class="breakdown-bar-wrap"><div class="breakdown-bar-fill ' + barClass + '" style="width:' + pctSec + '%"></div></div>';
+    breakdownHtml += '</div>';
+  });
+  breakdownHtml += '</div>';
+
+  panel.innerHTML = '<div class="results-icon">' + icon + '</div>' +
+    '<div class="results-title">' + title + '</div>' +
+    '<div class="results-score">' + pct + '%</div>' +
+    '<div class="results-sub">' + sub + '</div>' +
+    breakdownHtml +
+    '<button class="retry-btn" onclick="retryQuiz()">Reintentar quiz</button>';
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('stickyNav').classList.remove('visible');
+}
+
+function retryQuiz() {
+  answered = new Array(totalQ).fill(false);
+  correctArr = new Array(totalQ).fill(false);
+  scoreCount = 0;
+  document.getElementById('resultsPanel').classList.remove('visible');
+  document.getElementById('scoreDisplay').textContent = '0 / 0';
+  document.getElementById('scoreDisplay').classList.remove('active');
+  buildQuiz();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// init
+buildQuiz();
+updateProgress();
+</script>
+</body>
+</html>
